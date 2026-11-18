@@ -1,48 +1,59 @@
 {% extends "base.html" %}
 {% block title %}Register{% endblock %}
 {% block content %}
-<div class="row justify-content-center my-lg-3">
+<div class="row justify-content-center align-items-center my-lg-3">
   <div class="col-xl-11">
-    <div class="auth-shell row g-0">
-      <div class="col-lg-5 auth-visual-pane d-flex flex-column justify-content-between">
-        <div id="wi-three-canvas" class="three-canvas-wrap" aria-hidden="true"></div>
+    <div class="auth-shell row g-4 align-items-center">
+      <div class="col-lg-5 auth-visual-pane">
         <div class="auth-visual-overlay">
           <div>
-            <span class="mono-tag" style="color: var(--wi-gold);">CIT-U · CULTURAL HERITAGE PLATFORM</span>
-            <h2 class="mt-2">Join the Cebu Heritage Registry.</h2>
-            <p class="small text-white-50">Select <strong>Curator</strong> to manage landmark records and visitation logs, or <strong>Viewer</strong> to explore regional analytics dashboards.</p>
-          </div>
-          <div class="border-top border-secondary pt-3 mt-4 small text-white-50">
-            <div class="mb-1"><i class="bi bi-building me-2" style="color: var(--wi-gold);"></i><strong>Curator:</strong> Write access to sites, logs &amp; ratings</div>
-            <div><i class="bi bi-compass me-2" style="color: var(--wi-gold);"></i><strong>Viewer:</strong> Read-only access to visual analytics</div>
+            <span class="mono-tag d-inline-flex align-items-center gap-1" style="color: var(--wi-primary);">
+              <span class="ua-icon" data-ua="award" data-ua-interaction="hover-replay" data-ua-size="16"></span>CULTURAL HERITAGE PLATFORM
+            </span>
+            <h2 class="mt-2 mb-1">Join the Cebu Heritage Registry.</h2>
+            <p class="small text-muted mb-0">Select <strong>Curator</strong> to manage landmark records and visitation logs, or <strong>Viewer</strong> to explore regional analytics dashboards.</p>
           </div>
         </div>
+        <!-- Standalone Free-Floating 3D Holographic Globe (Not Trapped in a Box) -->
+        <div id="wi-three-canvas" class="three-canvas-wrap" title="Drag to rotate 3D Holographic Globe"></div>
+        <div class="small text-muted pt-2 px-2">
+          <div class="mb-1 d-flex align-items-center gap-2 ua-trigger"><span class="ua-icon" data-ua="edit" data-ua-interaction="hover" data-ua-size="18" style="color: var(--wi-primary);"></span><span><strong>Curator:</strong> Manage heritage sites, logs &amp; ratings</span></div>
+          <div class="d-flex align-items-center gap-2 ua-trigger"><span class="ua-icon" data-ua="explore" data-ua-interaction="hover" data-ua-size="18" style="color: var(--wi-primary);"></span><span><strong>Viewer:</strong> Browse landmarks &amp; visual analytics</span></div>
+        </div>
       </div>
-      <div class="col-lg-7 p-4 p-md-5">
-        <span class="mono-tag text-primary">F-01 · Registration</span>
-        <h1 class="h2 mt-1 mb-1">Create your account</h1>
-        <p class="text-muted small mb-4">Join WanderInsight to explore and manage cultural heritage analytics.</p>
-        {% if form.non_field_errors %}
-          <div class="alert alert-danger">{% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}</div>
-        {% endif %}
-        <form method="post" novalidate>
-          {% csrf_token %}
-          <div class="row">
-            <div class="col-md-6">{% include "partials/field.html" with field=form.first_name %}</div>
-            <div class="col-md-6">{% include "partials/field.html" with field=form.last_name %}</div>
-          </div>
-          <div class="row">
-            <div class="col-md-6">{% include "partials/field.html" with field=form.username %}</div>
-            <div class="col-md-6">{% include "partials/field.html" with field=form.email %}</div>
-          </div>
-          {% include "partials/field.html" with field=form.role %}
-          <div class="row">
-            <div class="col-md-6">{% include "partials/field.html" with field=form.password1 %}</div>
-            <div class="col-md-6">{% include "partials/field.html" with field=form.password2 %}</div>
-          </div>
-          <button type="submit" class="btn btn-primary w-100 mt-1">Register Account</button>
-        </form>
-        <p class="text-center mt-3 mb-0 small">Already have an account? <a href="{% url 'accounts:login' %}" class="fw-semibold">Log in</a></p>
+      <div class="col-lg-7">
+        <div class="auth-form-card p-4 p-md-5">
+          <h1 class="h2 mb-1">Create your account</h1>
+          <p class="text-muted small mb-4">Join WanderInsight to explore and manage cultural heritage analytics.</p>
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger d-flex align-items-center gap-2">
+              <span class="ua-icon" data-ua="alert-circle" data-ua-interaction="loop" data-ua-size="20"></span>
+              <div>{% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}</div>
+            </div>
+          {% endif %}
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="row">
+              <div class="col-md-6">{% include "partials/field.html" with field=form.first_name %}</div>
+              <div class="col-md-6">{% include "partials/field.html" with field=form.last_name %}</div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">{% include "partials/field.html" with field=form.username %}</div>
+              <div class="col-md-6">{% include "partials/field.html" with field=form.email %}</div>
+            </div>
+            {% include "partials/field.html" with field=form.role %}
+            <div class="row">
+              <div class="col-md-6">{% include "partials/field.html" with field=form.password1 %}</div>
+              <div class="col-md-6">{% include "partials/field.html" with field=form.password2 %}</div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mt-1 d-inline-flex align-items-center justify-content-center gap-2">
+              <span class="ua-icon" data-ua="user-check" data-ua-interaction="click-replay" data-ua-size="20"></span>
+              <span>Register Account</span>
+              <span class="ua-icon" data-ua="arrow-right" data-ua-interaction="hover-replay" data-ua-size="18"></span>
+            </button>
+          </form>
+          <p class="text-center mt-3 mb-0 small">Already have an account? <a href="{% url 'accounts:login' %}" class="fw-semibold d-inline-flex align-items-center gap-1">Log in <span class="ua-icon" data-ua="arrow-up-right" data-ua-interaction="hover-replay" data-ua-size="16"></span></a></p>
+        </div>
       </div>
     </div>
   </div>

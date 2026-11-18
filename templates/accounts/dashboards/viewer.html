@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Viewer Dashboard{% endblock %}
 {% block role_nav %}
-<li class="nav-item"><a class="nav-link active" href="{% url 'accounts:viewer_dashboard' %}">Dashboard</a></li>
-<li class="nav-item"><a class="nav-link disabled" href="#" aria-disabled="true">Explore Heritage Sites</a></li>
-<li class="nav-item"><a class="nav-link disabled" href="#" aria-disabled="true">Regional Overview</a></li>
+<li class="nav-item"><a class="nav-link active d-inline-flex align-items-center gap-1" href="{% url 'accounts:viewer_dashboard' %}"><span class="ua-icon" data-ua="home" data-ua-interaction="hover" data-ua-size="18"></span>Dashboard</a></li>
+<li class="nav-item"><a class="nav-link disabled d-inline-flex align-items-center gap-1" href="#" aria-disabled="true"><span class="ua-icon" data-ua="explore" data-ua-interaction="hover" data-ua-size="18"></span>Explore Heritage Sites</a></li>
+<li class="nav-item"><a class="nav-link disabled d-inline-flex align-items-center gap-1" href="#" aria-disabled="true"><span class="ua-icon" data-ua="bar-chart-2" data-ua-interaction="hover-replay" data-ua-size="18"></span>Regional Overview</a></li>
 {% endblock %}
 {% block content %}
 <div class="dash-hero dash-viewer mb-4">
   <div id="wi-three-canvas" class="three-canvas-wrap" style="opacity:0.45;" aria-hidden="true"></div>
   <div class="dash-hero-content">
-    <span class="mono-tag" style="color: var(--wi-gold);">ROLE: VIEWER · PUBLIC CULTURAL ANALYTICS</span>
-    <h1 class="mt-1 mb-1"><i class="bi bi-compass me-2"></i>Viewer Dashboard</h1>
+    <span class="mono-tag d-inline-flex align-items-center gap-1" style="color: var(--wi-gold);"><span class="ua-icon" data-ua="globe" data-ua-interaction="hover-loop" data-ua-size="16"></span>ROLE: VIEWER · PUBLIC CULTURAL ANALYTICS</span>
+    <h1 class="mt-1 mb-1 d-flex align-items-center gap-2"><span class="ua-icon" data-ua="explore" data-ua-interaction="hover" data-ua-size="34" style="color: var(--wi-gold);"></span>Viewer Dashboard</h1>
     <p class="mb-0 text-white-50">Welcome, {{ user.get_full_name|default:user.username }}. Explore Cebu's cultural heritage landmarks and their visitor trends.</p>
   </div>
 </div>
@@ -19,7 +19,7 @@
   <div class="col-lg-8">
     <div class="card h-100">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <span class="fw-semibold"><i class="bi bi-graph-up me-2 text-primary"></i>Regional Foot-Traffic Trend (Chart.js · F-06)</span>
+        <span class="fw-semibold d-inline-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="trending-up" data-ua-interaction="hover-replay" data-ua-size="20"></span>Regional Foot-Traffic Trend (Chart.js · F-06)</span>
         <span class="mono-tag text-muted">Cebu Heritage Corridor</span>
       </div>
       <div class="card-body">
@@ -29,7 +29,7 @@
   </div>
   <div class="col-lg-4">
     <div class="card h-100">
-      <div class="card-header fw-semibold"><i class="bi bi-pie-chart me-2 text-primary"></i>Visitor Demographics</div>
+      <div class="card-header fw-semibold d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="pie-chart" data-ua-interaction="hover-replay" data-ua-size="20"></span>Visitor Demographics</div>
       <div class="card-body">
         <div class="chart-box"><canvas id="wi-demographic-chart"></canvas></div>
       </div>
@@ -40,25 +40,25 @@
 <div class="row g-3">
   <div class="col-md-4">
     <div class="card card-interactive h-100"><div class="card-body">
-      <h2 class="h5"><i class="bi bi-geo-alt me-2 text-primary"></i>Heritage Sites</h2>
+      <h2 class="h5 d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="24"></span>Heritage Sites</h2>
       <p class="text-muted small">Browse landmark profiles: history, category, district, and preservation status.</p>
       <span class="badge text-bg-light border mono-tag">Coming soon</span>
     </div></div>
   </div>
   <div class="col-md-4">
     <div class="card card-interactive h-100"><div class="card-body">
-      <h2 class="h5"><i class="bi bi-graph-up me-2 text-primary"></i>Site Analytics</h2>
+      <h2 class="h5 d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="bar-chart-2" data-ua-interaction="hover-replay" data-ua-size="24"></span>Site Analytics</h2>
       <p class="text-muted small">View foot-traffic trends, visitor demographics, and ratings for any landmark.</p>
       <span class="badge text-bg-light border mono-tag">Coming soon</span>
     </div></div>
   </div>
   <div class="col-md-4">
     <div class="card card-interactive h-100"><div class="card-body">
-      <h2 class="h5"><i class="bi bi-trophy me-2 text-primary"></i>Regional Rankings</h2>
+      <h2 class="h5 d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="award" data-ua-interaction="hover-replay" data-ua-size="24"></span>Regional Rankings</h2>
       <p class="text-muted small">Compare popularity across districts and heritage categories.</p>
       <span class="badge text-bg-light border mono-tag">Coming soon</span>
     </div></div>
   </div>
 </div>
-<div class="alert alert-light border mt-4 mb-0"><i class="bi bi-info-circle me-2 text-primary"></i>Your account has <strong>read-only</strong> access to WanderInsight dashboards.</div>
+<div class="alert alert-light border mt-4 mb-0 d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="info" data-ua-interaction="hover" data-ua-size="20"></span><span>Your account has <strong>read-only</strong> access to WanderInsight dashboards.</span></div>
 {% endblock %}

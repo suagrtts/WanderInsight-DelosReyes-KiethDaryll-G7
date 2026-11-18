@@ -1,33 +1,33 @@
 {% extends "base.html" %}
 {% block title %}Curator Dashboard{% endblock %}
 {% block role_nav %}
-<li class="nav-item"><a class="nav-link active" href="{% url 'accounts:curator_dashboard' %}">Dashboard</a></li>
-<li class="nav-item"><a class="nav-link disabled" href="#" aria-disabled="true">My Heritage Sites</a></li>
-<li class="nav-item"><a class="nav-link disabled" href="#" aria-disabled="true">Visitation Logs</a></li>
-<li class="nav-item"><a class="nav-link disabled" href="#" aria-disabled="true">Ratings</a></li>
+<li class="nav-item"><a class="nav-link active d-inline-flex align-items-center gap-1" href="{% url 'accounts:curator_dashboard' %}"><span class="ua-icon" data-ua="home" data-ua-interaction="hover" data-ua-size="18"></span>Dashboard</a></li>
+<li class="nav-item"><a class="nav-link disabled d-inline-flex align-items-center gap-1" href="#" aria-disabled="true"><span class="ua-icon" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="18"></span>My Heritage Sites</a></li>
+<li class="nav-item"><a class="nav-link disabled d-inline-flex align-items-center gap-1" href="#" aria-disabled="true"><span class="ua-icon" data-ua="calendar" data-ua-interaction="hover" data-ua-size="18"></span>Visitation Logs</a></li>
+<li class="nav-item"><a class="nav-link disabled d-inline-flex align-items-center gap-1" href="#" aria-disabled="true"><span class="ua-icon" data-ua="star" data-ua-interaction="click-toggle" data-ua-size="18"></span>Ratings</a></li>
 {% endblock %}
 {% block content %}
 <div class="dash-hero dash-curator mb-4">
   <div id="wi-three-canvas" class="three-canvas-wrap" style="opacity:0.45;" aria-hidden="true"></div>
   <div class="dash-hero-content">
-    <span class="mono-tag" style="color: var(--wi-gold);">ROLE: CURATOR · WRITE ACCESS ENABLED (BR-10)</span>
-    <h1 class="mt-1 mb-1"><i class="bi bi-building me-2"></i>Curator Dashboard</h1>
+    <span class="mono-tag d-inline-flex align-items-center gap-1" style="color: var(--wi-gold);"><span class="ua-icon" data-ua="edit" data-ua-interaction="hover" data-ua-size="16"></span>ROLE: CURATOR · WRITE ACCESS ENABLED (BR-10)</span>
+    <h1 class="mt-1 mb-1 d-flex align-items-center gap-2"><span class="ua-icon" data-ua="award" data-ua-interaction="hover-replay" data-ua-size="34" style="color: var(--wi-gold);"></span>Curator Dashboard</h1>
     <p class="mb-0 text-white-50">Welcome, {{ user.get_full_name|default:user.username }}{% if user.organization %} of {{ user.organization }}{% endif %}. Manage your heritage sites and record visitor activity.</p>
   </div>
 </div>
 
 <div class="row g-3 mb-4">
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">My Sites</div><div class="kpi-value">0</div><div class="kpi-delta text-muted">Ready for F-02 CRUD</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">All-Time Visitors</div><div class="kpi-value">0</div><div class="kpi-delta text-success">SQL SUM() metric</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Avg. Rating</div><div class="kpi-value">—</div><div class="kpi-delta text-muted">1–5 scale (BR-05)</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Logs This Month</div><div class="kpi-value">0</div><div class="kpi-delta text-muted">Daily unique (BR-04)</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="d-flex justify-content-between align-items-center"><span class="kpi-label">My Sites</span><span class="ua-icon text-primary" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="22"></span></div><div class="kpi-value">0</div><div class="kpi-delta text-muted">Ready for F-02 CRUD</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="d-flex justify-content-between align-items-center"><span class="kpi-label">All-Time Visitors</span><span class="ua-icon text-success" data-ua="trending-up" data-ua-interaction="hover-replay" data-ua-size="22"></span></div><div class="kpi-value">0</div><div class="kpi-delta text-success">SQL SUM() metric</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="d-flex justify-content-between align-items-center"><span class="kpi-label">Avg. Rating</span><span class="ua-icon text-warning" data-ua="star" data-ua-interaction="click-toggle" data-ua-size="22"></span></div><div class="kpi-value">—</div><div class="kpi-delta text-muted">1–5 scale (BR-05)</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="d-flex justify-content-between align-items-center"><span class="kpi-label">Logs This Month</span><span class="ua-icon text-primary" data-ua="calendar" data-ua-interaction="hover" data-ua-size="22"></span></div><div class="kpi-value">0</div><div class="kpi-delta text-muted">Daily unique (BR-04)</div></div></div></div>
 </div>
 
 <div class="row g-3 mb-4">
   <div class="col-lg-8">
     <div class="card h-100">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <span class="fw-semibold"><i class="bi bi-graph-up me-2 text-primary"></i>Site Visitation Trend Preview (Chart.js · F-05)</span>
+        <span class="fw-semibold d-inline-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="trending-up" data-ua-interaction="hover-replay" data-ua-size="20"></span>Site Visitation Trend Preview (Chart.js · F-05)</span>
         <span class="mono-tag text-muted">Sample Corridor Series</span>
       </div>
       <div class="card-body">
@@ -37,7 +37,7 @@
   </div>
   <div class="col-lg-4">
     <div class="card h-100">
-      <div class="card-header fw-semibold"><i class="bi bi-pie-chart me-2 text-primary"></i>Visitor Origin Split (BR-01)</div>
+      <div class="card-header fw-semibold d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="pie-chart" data-ua-interaction="hover-replay" data-ua-size="20"></span>Visitor Origin Split (BR-01)</div>
       <div class="card-body">
         <div class="chart-box"><canvas id="wi-demographic-chart"></canvas></div>
       </div>
@@ -48,21 +48,21 @@
 <div class="row g-3">
   <div class="col-md-6">
     <div class="card h-100">
-      <div class="card-header fw-semibold">Quick Actions</div>
+      <div class="card-header fw-semibold d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="zap" data-ua-interaction="hover-replay" data-ua-size="20"></span>Quick Actions</div>
       <div class="list-group list-group-flush">
-        <span class="list-group-item text-muted"><i class="bi bi-plus-circle me-2"></i>Register a heritage site <small>(coming soon)</small></span>
-        <span class="list-group-item text-muted"><i class="bi bi-clipboard-data me-2"></i>Submit visitation log <small>(coming soon)</small></span>
-        <span class="list-group-item text-muted"><i class="bi bi-star me-2"></i>Record visitor rating <small>(coming soon)</small></span>
-        <span class="list-group-item text-muted"><i class="bi bi-download me-2"></i>Export site data (CSV) <small>(coming soon)</small></span>
+        <span class="list-group-item text-muted d-flex align-items-center gap-2"><span class="ua-icon" data-ua="plus-circle" data-ua-interaction="click-replay" data-ua-size="20"></span>Register a heritage site <small>(coming soon)</small></span>
+        <span class="list-group-item text-muted d-flex align-items-center gap-2"><span class="ua-icon" data-ua="clipboard" data-ua-interaction="hover-replay" data-ua-size="20"></span>Submit visitation log <small>(coming soon)</small></span>
+        <span class="list-group-item text-muted d-flex align-items-center gap-2"><span class="ua-icon" data-ua="star" data-ua-interaction="click-toggle" data-ua-size="20"></span>Record visitor rating <small>(coming soon)</small></span>
+        <span class="list-group-item text-muted d-flex align-items-center gap-2"><span class="ua-icon" data-ua="download" data-ua-interaction="click-replay" data-ua-size="20"></span>Export site data (CSV) <small>(coming soon)</small></span>
       </div>
     </div>
   </div>
   <div class="col-md-6">
     <div class="card h-100">
-      <div class="card-header fw-semibold">Your Access</div>
+      <div class="card-header fw-semibold d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="shield" data-ua-interaction="hover-replay" data-ua-size="20"></span>Your Access</div>
       <div class="card-body">
         <p>As a <strong>Curator</strong> you have <strong>write access</strong> to heritage site records, visitation logs, and visitor ratings (BR-10).</p>
-        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-primary btn-sm">View my profile</a>
+        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1"><span class="ua-icon" data-ua="user" data-ua-interaction="hover-replay" data-ua-size="18"></span>View my profile</a>
       </div>
     </div>
   </div>

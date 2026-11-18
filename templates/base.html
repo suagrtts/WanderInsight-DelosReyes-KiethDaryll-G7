@@ -9,56 +9,74 @@
   <link href="{% static 'css/style.css' %}" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
-  <nav class="navbar navbar-expand-lg navbar-dark wi-navbar">
+  <!-- Full-Viewport Interactive 3D Topographic & Constellation Canvas -->
+  <div id="wi-bg-canvas" class="wi-bg-canvas" aria-hidden="true"></div>
+  <div class="wi-cursor-spotlight" aria-hidden="true"></div>
+
+  <nav class="navbar navbar-expand-lg navbar-dark wi-navbar sticky-top">
     <div class="container">
       <a class="navbar-brand d-flex align-items-center" href="{% url 'accounts:dashboard' %}">
-        <i class="bi bi-bank2 me-2" style="color: var(--wi-gold);"></i>WanderInsight
+        <span class="ua-icon me-2" data-ua="globe" data-ua-interaction="hover-loop" data-ua-size="26" style="color: var(--wi-gold);"></span>WanderInsight
         <span class="brand-sub d-none d-sm-inline-block">Cebu Heritage</span>
       </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="ua-icon text-white" data-ua="menu-v2" data-ua-interaction="click-toggle" data-ua-size="28"></span>
       </button>
       <div class="collapse navbar-collapse" id="mainNav">
         <ul class="navbar-nav me-auto ms-lg-3">
           {% if user.is_authenticated %}
             {% block role_nav %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link d-inline-flex align-items-center gap-1" href="{% url 'accounts:dashboard' %}"><span class="ua-icon" data-ua="home" data-ua-interaction="hover" data-ua-size="18"></span>Dashboard</a></li>
             {% endblock %}
           {% endif %}
         </ul>
         <ul class="navbar-nav align-items-lg-center">
+          <li class="nav-item d-none d-xl-flex align-items-center me-3">
+            <span class="wi-telemetry-pill ua-trigger" title="Move or click anywhere on the background to send a geospatial wave">
+              <span class="ua-icon" data-ua="activity" data-ua-interaction="loop" data-ua-size="16" style="color: #4ADE80;"></span>
+              <span id="wi-coords-live">10.2935°N, 123.9018°E</span>
+            </span>
+          </li>
           {% if user.is_authenticated %}
             <li class="nav-item me-lg-2"><span class="badge role-badge role-{{ user.role|lower }}">{{ user.get_role_display }}</span></li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                {% if user.profile_photo %}<img src="{{ user.profile_photo.url }}" class="avatar-sm me-2" alt="">{% else %}<i class="bi bi-person-circle me-2"></i>{% endif %}
+                {% if user.profile_photo %}<img src="{{ user.profile_photo.url }}" class="avatar-sm me-2" alt="">{% else %}<span class="ua-icon me-2" data-ua="user" data-ua-interaction="hover-replay" data-ua-size="20"></span>{% endif %}
                 {{ user.username }}
               </a>
               <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person me-2"></i>My Profile</a></li>
-                <li><a class="dropdown-item" href="{% url 'accounts:profile_edit' %}"><i class="bi bi-pencil me-2"></i>Edit Profile</a></li>
+                <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'accounts:profile' %}"><span class="ua-icon" data-ua="user" data-ua-interaction="hover-replay" data-ua-size="18"></span>My Profile</a></li>
+                <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'accounts:profile_edit' %}"><span class="ua-icon" data-ua="edit" data-ua-interaction="hover" data-ua-size="18"></span>Edit Profile</a></li>
+                <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'accounts:password_change' %}"><span class="ua-icon" data-ua="key" data-ua-interaction="hover-replay" data-ua-size="18"></span>Change Password</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
                   <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
-                    <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Log out</button>
+                    <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2"><span class="ua-icon" data-ua="log-out" data-ua-interaction="click-replay" data-ua-size="18"></span>Log out</button>
                   </form>
                 </li>
               </ul>
             </li>
           {% else %}
-            <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">Log in</a></li>
-            <li class="nav-item"><a class="btn btn-primary btn-sm ms-lg-2" href="{% url 'accounts:register' %}">Register</a></li>
+            <li class="nav-item"><a class="nav-link d-inline-flex align-items-center gap-1" href="{% url 'accounts:login' %}"><span class="ua-icon" data-ua="log-in" data-ua-interaction="click-replay" data-ua-size="18"></span>Log in</a></li>
+            <li class="nav-item"><a class="btn btn-primary btn-sm ms-lg-2 d-inline-flex align-items-center gap-1" href="{% url 'accounts:register' %}"><span class="ua-icon" data-ua="user-plus" data-ua-interaction="hover" data-ua-size="18"></span>Register</a></li>
           {% endif %}
         </ul>
       </div>
     </div>
   </nav>
 
-  <main class="container py-4 flex-grow-1" data-enter>
+  <main class="container py-4 flex-grow-1 position-relative" style="z-index: 2;" data-enter>
     {% if messages %}
       {% for message in messages %}
-        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm" role="alert">
-          {{ message }}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm d-flex align-items-center gap-2" role="alert">
+          {% if message.tags == 'error' %}
+            <span class="ua-icon" data-ua="alert-triangle" data-ua-interaction="loop" data-ua-size="22"></span>
+          {% elif message.tags == 'success' %}
+            <span class="ua-icon" data-ua="checkmark" data-ua-interaction="loop" data-ua-size="22"></span>
+          {% else %}
+            <span class="ua-icon" data-ua="info" data-ua-interaction="hover" data-ua-size="22"></span>
+          {% endif %}
+          <div>{{ message }}</div>
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
       {% endfor %}
@@ -66,17 +84,25 @@
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="py-3 text-center text-muted small border-top bg-white">
-    <div class="container d-flex flex-column flex-sm-row justify-content-between align-items-center">
-      <span>WanderInsight · Personalized Cultural Heritage Analytics &amp; Information Management</span>
-      <span class="mono-tag">CSIT327 – G7 · CIT-U</span>
+  <footer class="py-3 text-center text-muted small border-top wi-footer position-relative" style="z-index: 2;">
+    <div class="container d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+      <span>WanderInsight · Cultural Heritage Analytics · Animated icons by <a href="https://useanimations.com" target="_blank" rel="noopener">useAnimations</a></span>
+      <div class="d-flex align-items-center gap-2">
+        <span class="mono-tag text-muted d-none d-md-inline">Click background to pulse wave ·</span>
+        <button id="wi-bg-toggle" type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 mono-tag d-inline-flex align-items-center gap-1">
+          <span class="ua-icon" data-ua="play-pause" data-ua-interaction="click-toggle" data-ua-size="16"></span><span id="wi-bg-toggle-label">Pause 3D</span>
+        </button>
+        <span class="mono-tag">CSIT327 – G7 · CIT-U</span>
+      </div>
     </div>
   </footer>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lottie-web@5.13.0/build/player/lottie.min.js"></script>
   <script src="{% static 'js/heritage-scene.js' %}"></script>
   <script src="{% static 'js/dashboard-charts.js' %}"></script>
+  <script src="{% static 'js/useanimations-init.js' %}"></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>
