@@ -9,7 +9,11 @@
   <link href="{% static 'css/style.css' %}" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
-  <nav class="navbar navbar-expand-lg navbar-dark wi-navbar">
+  <!-- Full-Viewport Interactive 3D Topographic & Constellation Canvas -->
+  <div id="wi-bg-canvas" class="wi-bg-canvas" aria-hidden="true"></div>
+  <div class="wi-cursor-spotlight" aria-hidden="true"></div>
+
+  <nav class="navbar navbar-expand-lg navbar-dark wi-navbar sticky-top">
     <div class="container">
       <a class="navbar-brand d-flex align-items-center" href="{% url 'accounts:dashboard' %}">
         <i class="bi bi-bank2 me-2" style="color: var(--wi-gold);"></i>WanderInsight
@@ -27,6 +31,12 @@
           {% endif %}
         </ul>
         <ul class="navbar-nav align-items-lg-center">
+          <li class="nav-item d-none d-xl-flex align-items-center me-3">
+            <span class="wi-telemetry-pill" title="Move or click anywhere on the background to send a geospatial wave">
+              <span class="wi-pulse-dot"></span>
+              <span id="wi-coords-live">10.2935°N, 123.9018°E</span>
+            </span>
+          </li>
           {% if user.is_authenticated %}
             <li class="nav-item me-lg-2"><span class="badge role-badge role-{{ user.role|lower }}">{{ user.get_role_display }}</span></li>
             <li class="nav-item dropdown">
@@ -54,7 +64,7 @@
     </div>
   </nav>
 
-  <main class="container py-4 flex-grow-1" data-enter>
+  <main class="container py-4 flex-grow-1 position-relative" style="z-index: 2;" data-enter>
     {% if messages %}
       {% for message in messages %}
         <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm" role="alert">
@@ -66,10 +76,16 @@
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="py-3 text-center text-muted small border-top bg-white">
-    <div class="container d-flex flex-column flex-sm-row justify-content-between align-items-center">
+  <footer class="py-3 text-center text-muted small border-top wi-footer position-relative" style="z-index: 2;">
+    <div class="container d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
       <span>WanderInsight · Personalized Cultural Heritage Analytics &amp; Information Management</span>
-      <span class="mono-tag">CSIT327 – G7 · CIT-U</span>
+      <div class="d-flex align-items-center gap-2">
+        <span class="mono-tag text-muted d-none d-md-inline">Click background to pulse wave ·</span>
+        <button id="wi-bg-toggle" type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 mono-tag">
+          <i class="bi bi-pause-fill me-1"></i>Pause 3D
+        </button>
+        <span class="mono-tag">CSIT327 – G7 · CIT-U</span>
+      </div>
     </div>
   </footer>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
