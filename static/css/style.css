@@ -196,21 +196,60 @@ a:hover { color: var(--wi-primary-hover); text-decoration: underline; }
   padding: 1rem 1.25rem;
 }
 
-/* Auth Split Shell & Three.js Canvas */
+/* Auth Split Shell & Standalone Holographic 3D Globe Stage (Not Stuck Inside a Box) */
 .auth-shell {
-  border: 1px solid var(--wi-border);
-  border-radius: 1.15rem;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 18px 44px rgba(22, 20, 18, 0.1);
+  border: none;
+  border-radius: 1.25rem;
+  overflow: visible;
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
 }
 .auth-visual-pane {
   position: relative;
-  background: radial-gradient(circle at 30% 25%, #2B211B 0%, #14110F 75%);
-  color: #FAF7F0;
-  min-height: 440px;
-  overflow: hidden;
+  background: transparent !important;
+  color: var(--wi-ink);
+  min-height: 520px;
+  overflow: visible !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.5rem 1.25rem 0.5rem 0.25rem;
+}
+/* Soft ambient holographic floor aura beneath the free-floating 3D globe */
+.auth-visual-pane::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 56%;
+  width: 420px;
+  height: 420px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    circle,
+    rgba(14, 165, 233, 0.14) 0%,
+    rgba(200, 146, 46, 0.16) 42%,
+    transparent 70%
+  );
+  filter: blur(10px);
+}
+.auth-visual-pane .three-canvas-wrap {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: 390px;
+  margin: -0.25rem auto;
+  z-index: 2;
+  pointer-events: auto;
+  cursor: grab;
+  overflow: visible;
+  filter: drop-shadow(0 22px 30px rgba(22, 20, 18, 0.16)) drop-shadow(0 0 24px rgba(14, 165, 233, 0.22));
+}
+.auth-visual-pane .three-canvas-wrap:active {
+  cursor: grabbing;
 }
 .three-canvas-wrap {
   position: absolute;
@@ -220,17 +259,25 @@ a:hover { color: var(--wi-primary-hover); text-decoration: underline; }
 }
 .auth-visual-overlay {
   position: relative;
-  z-index: 2;
-  padding: 2.5rem;
+  z-index: 3;
+  padding: 0.25rem 0.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 100%;
+  pointer-events: none;
 }
 .auth-visual-overlay h2 {
-  color: #FAF7F0;
-  font-size: 2.2rem;
-  line-height: 1.12;
+  color: var(--wi-ink);
+  font-size: 2.35rem;
+  line-height: 1.08;
+}
+.auth-form-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--wi-border);
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 48px rgba(22, 20, 18, 0.09);
 }
 
 /* Form controls */

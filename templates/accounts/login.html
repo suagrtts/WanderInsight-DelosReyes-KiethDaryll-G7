@@ -1,49 +1,47 @@
 {% extends "base.html" %}
 {% block title %}Log in{% endblock %}
 {% block content %}
-<div class="row justify-content-center my-lg-3">
+<div class="row justify-content-center align-items-center my-lg-3">
   <div class="col-xl-10">
-    <div class="auth-shell row g-0">
-      <div class="col-lg-6 auth-visual-pane d-flex flex-column justify-content-between">
-        <div id="wi-three-canvas" class="three-canvas-wrap" aria-hidden="true"></div>
+    <div class="auth-shell row g-4 align-items-center">
+      <div class="col-lg-6 auth-visual-pane">
         <div class="auth-visual-overlay">
           <div>
-            <span class="mono-tag d-inline-flex align-items-center gap-1" style="color: var(--wi-gold);">
-              <span class="ua-icon" data-ua="compass" data-ua-interaction="hover-replay" data-ua-size="16"></span>9.0°N–11.5°N · 123.0°E–124.5°E · CEBU CORRIDOR
+            <span class="mono-tag d-inline-flex align-items-center gap-1" style="color: var(--wi-primary);">
+              <span class="ua-icon" data-ua="explore" data-ua-interaction="hover" data-ua-size="16"></span>CEBU HERITAGE
             </span>
-            <h2 class="mt-2">Preserving heritage through living data.</h2>
-            <p class="small text-white-50 mb-0">Track landmark foot-traffic, demographic origins, and structural conservation across Cebu's historic districts.</p>
-          </div>
-          <div class="border-top border-secondary pt-3 mt-4 small d-flex justify-content-between align-items-center text-white-50">
-            <span class="d-inline-flex align-items-center gap-1 ua-trigger"><span class="ua-icon" data-ua="shield" data-ua-interaction="hover-replay" data-ua-size="18" style="color: var(--wi-gold);"></span>Role-Based Access (RBAC)</span>
-            <span class="mono-tag d-inline-flex align-items-center gap-1 ua-trigger"><span class="ua-icon" data-ua="globe" data-ua-interaction="hover-loop" data-ua-size="16" style="color: var(--wi-gold);"></span>3D Geospatial Globe</span>
+            <h2 class="mt-2 mb-1">Preserving heritage through living data.</h2>
+            <p class="small text-muted mb-0">Track landmark foot-traffic, demographic origins, and structural conservation across Cebu's historic districts.</p>
           </div>
         </div>
+        <!-- Standalone Free-Floating 3D Holographic Globe (Not Trapped in a Box) -->
+        <div id="wi-three-canvas" class="three-canvas-wrap" title="Drag to rotate 3D Holographic Globe"></div>
       </div>
-      <div class="col-lg-6 p-4 p-md-5 d-flex flex-column justify-content-center">
-        <div class="mb-4">
-          <span class="mono-tag text-primary d-inline-flex align-items-center gap-1"><span class="ua-icon" data-ua="lock" data-ua-interaction="click-toggle" data-ua-size="16"></span>Account Portal</span>
-          <h1 class="h2 mt-1 mb-1">Welcome back</h1>
-          <p class="text-muted small mb-0">Log in to your WanderInsight account to access your role dashboard.</p>
-        </div>
-        {% if form.non_field_errors %}
-          <div class="alert alert-danger d-flex align-items-center gap-2">
-            <span class="ua-icon" data-ua="alert-circle" data-ua-interaction="loop" data-ua-size="20"></span>
-            <div>{% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}</div>
+      <div class="col-lg-6">
+        <div class="auth-form-card p-4 p-md-5">
+          <div class="mb-4">
+            <h1 class="h2 mb-1">Welcome back</h1>
+            <p class="text-muted small mb-0">Log in to your WanderInsight account to access your dashboard.</p>
           </div>
-        {% endif %}
-        <form method="post" novalidate>
-          {% csrf_token %}
-          {% include "partials/field.html" with field=form.username %}
-          {% include "partials/field.html" with field=form.password %}
-          <input type="hidden" name="next" value="{{ next }}">
-          <button type="submit" class="btn btn-primary w-100 mt-1 d-inline-flex align-items-center justify-content-center gap-2">
-            <span class="ua-icon" data-ua="log-in" data-ua-interaction="click-replay" data-ua-size="20"></span>
-            <span>Log in to WanderInsight</span>
-            <span class="ua-icon" data-ua="arrow-right" data-ua-interaction="hover-replay" data-ua-size="18"></span>
-          </button>
-        </form>
-        <p class="text-center mt-4 mb-0 small">No account yet? <a href="{% url 'accounts:register' %}" class="fw-semibold d-inline-flex align-items-center gap-1">Create an account <span class="ua-icon" data-ua="arrow-up-right" data-ua-interaction="hover-replay" data-ua-size="16"></span></a></p>
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger d-flex align-items-center gap-2">
+              <span class="ua-icon" data-ua="alert-circle" data-ua-interaction="loop" data-ua-size="20"></span>
+              <div>{% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}</div>
+            </div>
+          {% endif %}
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {% include "partials/field.html" with field=form.username %}
+            {% include "partials/field.html" with field=form.password %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <button type="submit" class="btn btn-primary w-100 mt-1 d-inline-flex align-items-center justify-content-center gap-2">
+              <span class="ua-icon" data-ua="log-in" data-ua-interaction="click-replay" data-ua-size="20"></span>
+              <span>Log in to WanderInsight</span>
+              <span class="ua-icon" data-ua="arrow-right" data-ua-interaction="hover-replay" data-ua-size="18"></span>
+            </button>
+          </form>
+          <p class="text-center mt-4 mb-0 small">No account yet? <a href="{% url 'accounts:register' %}" class="fw-semibold d-inline-flex align-items-center gap-1">Create an account <span class="ua-icon" data-ua="arrow-up-right" data-ua-interaction="hover-replay" data-ua-size="16"></span></a></p>
+        </div>
       </div>
     </div>
   </div>

@@ -1,8 +1,10 @@
 /**
- * WanderInsight — Full-Viewport Interactive Three.js Background + Hero Globe
+ * WanderInsight — Full-Viewport Interactive Three.js Background + Standalone 3D Holographic Globe
  * 1) #wi-bg-canvas: Full-window interactive 3D topographic terrain mesh + heritage constellation
  *    that ripples around the mouse cursor and emits shockwaves on click.
- * 2) #wi-three-canvas: Local hero / auth-pane 3D Cebu heritage astrolabe globe.
+ * 2) #wi-three-canvas: Standalone free-floating 3D Holographic Globe (not clipped inside a box)
+ *    with GLSL Fresnel + scanline shader, Fibonacci lattice, geodesic telemetry arcs, pulsing
+ *    Cebu landmark beacons, and interactive click-and-drag 360° orbit rotation.
  */
 (function () {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -28,19 +30,16 @@
     const world = new THREE.Group();
     scene.add(world);
 
-    // A) Interactive Topographic Wireframe Terrain (Cebu coastal contour waves)
     const cols = 46;
     const rows = 28;
     const planeGeo = new THREE.PlaneGeometry(34, 20, cols, rows);
     planeGeo.rotateX(-Math.PI / 2.25);
 
     const posAttr = planeGeo.attributes.position;
-    const baseY = new Float32Array(posAttr.count);
     for (let i = 0; i < posAttr.count; i++) {
       const x = posAttr.getX(i);
       const z = posAttr.getZ(i);
-      baseY[i] = Math.sin(x * 0.35) * Math.cos(z * 0.35) * 0.45;
-      posAttr.setY(i, baseY[i]);
+      posAttr.setY(i, Math.sin(x * 0.35) * Math.cos(z * 0.35) * 0.45);
     }
 
     const terrainMat = new THREE.MeshBasicMaterial({
@@ -53,7 +52,6 @@
     terrain.position.y = -3.2;
     world.add(terrain);
 
-    // B) Floating Heritage Constellation Nodes + Dynamic Connecting Lines
     const nodeCount = 42;
     const nodes = [];
     const nodeGeo = new THREE.SphereGeometry(0.075, 10, 10);
@@ -71,14 +69,11 @@
         vx: (Math.random() - 0.5) * 0.012,
         vy: (Math.random() - 0.5) * 0.01,
         vz: (Math.random() - 0.5) * 0.008,
-        baseX: mesh.position.x,
-        baseY: mesh.position.y,
       };
       world.add(mesh);
       nodes.push(mesh);
     }
 
-    // Line geometry connecting nearby constellation nodes
     const maxSegments = nodeCount * 6;
     const linePositions = new Float32Array(maxSegments * 6);
     const lineGeo = new THREE.BufferGeometry();
@@ -91,9 +86,8 @@
     const constellationLines = new THREE.LineSegments(lineGeo, lineMat);
     world.add(constellationLines);
 
-    // Mouse / Pointer state & Click Ripple Shockwave
     const mouse = { x: 0, y: 0, worldX: 0, worldZ: 0 };
-    const ripples = []; // { x, z, time }
+    const ripples = [];
 
     window.addEventListener("pointermove", function (e) {
       mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -101,9 +95,15 @@
       mouse.worldX = mouse.x * 13;
       mouse.worldZ = -mouse.y * 7;
 
-      // Update CSS spotlight variables on body
       document.documentElement.style.setProperty("--cursor-x", e.clientX + "px");
       document.documentElement.style.setProperty("--cursor-y", e.clientY + "px");
+
+      const pill = document.getElementById("wi-coords-live");
+      if (pill) {
+        const lat = (10.28 + ((1 - e.clientY / window.innerHeight) - 0.5) * 0.45).toFixed(4);
+        const lng = (123.90 + ((e.clientX / window.innerWidth) - 0.5) * 0.45).toFixed(4);
+        pill.textContent = lat + "°N, " + lng + "°E";
+      }
     });
 
     window.addEventListener("pointerdown", function (e) {
@@ -111,22 +111,6 @@
       const rz = -(-(e.clientY / window.innerHeight) * 2 + 1) * 7;
       ripples.push({ x: rx, z: rz, age: 0 });
       if (ripples.length > 4) ripples.shift();
-
-      const pill = document.getElementById("wi-coords-live");
-      if (pill) {
-        const lat = (10.28 + ((1 - e.clientY / window.innerHeight) - 0.5) * 0.45).toFixed(4);
-        const lng = (123.90 + ((e.clientX / window.innerWidth) - 0.5) * 0.45).toFixed(4);
-        pill.textContent = lat + "°N, " + lng + "°E · PING";
-      }
-    });
-
-    // Live GPS telemetry update on pointermove
-    window.addEventListener("pointermove", function (e) {
-      const pill = document.getElementById("wi-coords-live");
-      if (!pill) return;
-      const lat = (10.28 + ((1 - e.clientY / window.innerHeight) - 0.5) * 0.45).toFixed(4);
-      const lng = (123.90 + ((e.clientX / window.innerWidth) - 0.5) * 0.45).toFixed(4);
-      pill.textContent = lat + "°N, " + lng + "°E";
     });
 
     let paused = false;
@@ -135,9 +119,7 @@
       toggleBtn.addEventListener("click", function () {
         paused = !paused;
         const lbl = document.getElementById("wi-bg-toggle-label");
-        if (lbl) {
-          lbl.textContent = paused ? "Resume 3D" : "Pause 3D";
-        }
+        if (lbl) lbl.textContent = paused ? "Resume 3D" : "Pause 3D";
       });
     }
 
@@ -150,7 +132,6 @@
       if (paused) return;
       clock += 0.018;
 
-      // 1. Animate terrain vertices + cursor magnetic ripple + click shockwaves
       for (let i = 0; i < posAttr.count; i++) {
         const vx = posAttr.getX(i);
         const vz = posAttr.getZ(i);
@@ -158,7 +139,6 @@
           Math.sin(vx * 0.35 + clock) * 0.35 +
           Math.cos(vz * 0.4 + clock * 0.8) * 0.3;
 
-        // Cursor proximity swell
         const dx = vx - mouse.worldX;
         const dz = vz - mouse.worldZ;
         const dist = Math.sqrt(dx * dx + dz * dz);
@@ -166,7 +146,6 @@
           wave += Math.cos((dist / 5.5) * (Math.PI / 2)) * 1.05;
         }
 
-        // Click shockwaves
         for (let r = 0; r < ripples.length; r++) {
           const rp = ripples[r];
           const rdx = vx - rp.x;
@@ -187,7 +166,6 @@
         if (ripples[r].age >= 1) ripples.splice(r, 1);
       }
 
-      // 2. Move constellation nodes and rebuild connecting lines
       let segIdx = 0;
       for (let i = 0; i < nodeCount; i++) {
         const n = nodes[i];
@@ -218,7 +196,6 @@
       lineGeo.setDrawRange(0, segIdx * 2);
       lineGeo.attributes.position.needsUpdate = true;
 
-      // 3. Subtle camera parallax with cursor
       world.rotation.y += (mouse.x * 0.14 - world.rotation.y) * 0.04;
       world.rotation.x += (-mouse.y * 0.06 - world.rotation.x) * 0.04;
 
@@ -234,18 +211,23 @@
   }
 
   /* ==========================================================================
-   * 2. HERO / CARD ASTROLABE GLOBE (#wi-three-canvas)
+   * 2. STANDALONE 3D HOLOGRAPHIC GLOBE (#wi-three-canvas)
+   *    Free-floating in open 3D space (not trapped inside a dark rectangle).
+   *    Includes GLSL Fresnel + scanline shader, Fibonacci lattice points,
+   *    curved geodesic data arcs, pulsing Cebu beacon radar rings, and
+   *    click-and-drag 360° interactive rotation.
    * ========================================================================== */
   function initHeroGlobe() {
     const container = document.getElementById("wi-three-canvas");
     if (!container || typeof THREE === "undefined") return;
 
-    const width = container.clientWidth || 420;
+    const width = container.clientWidth || 460;
     const height = container.clientHeight || 420;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
-    camera.position.set(0, 0.4, 4.4);
+    // Pulled back so all orbital rings and spikes float freely without clipping the canvas edges
+    camera.position.set(0, 0.15, 5.15);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(width, height);
@@ -256,85 +238,296 @@
     const root = new THREE.Group();
     scene.add(root);
 
-    const sphereGeo = new THREE.SphereGeometry(1.35, 24, 18);
+    // 1. Custom GLSL Hologram Shader Sphere (Translucent Deep Teal + Brass Rim + Laser Scanline)
+    const holoUniforms = {
+      uTime: { value: 0 },
+      uColorCore: { value: new THREE.Color(0x0d3b42) }, // Deep Holographic Teal
+      uColorRim: { value: new THREE.Color(0xc8922e) },  // Antique Brass Gold
+      uColorBeam: { value: new THREE.Color(0x38bdf8) }, // Cyan Laser Sweep
+    };
+
+    const holoVert = [
+      "varying vec3 vNormal;",
+      "varying vec3 vViewPos;",
+      "varying vec3 vLocalPos;",
+      "void main() {",
+      "  vLocalPos = position;",
+      "  vNormal = normalize(normalMatrix * normal);",
+      "  vec4 mvPos = modelViewMatrix * vec4(position, 1.0);",
+      "  vViewPos = -mvPos.xyz;",
+      "  gl_Position = projectionMatrix * mvPos;",
+      "}"
+    ].join("\n");
+
+    const holoFrag = [
+      "uniform float uTime;",
+      "uniform vec3 uColorCore;",
+      "uniform vec3 uColorRim;",
+      "uniform vec3 uColorBeam;",
+      "varying vec3 vNormal;",
+      "varying vec3 vViewPos;",
+      "varying vec3 vLocalPos;",
+      "void main() {",
+      "  vec3 N = normalize(vNormal);",
+      "  vec3 V = normalize(vViewPos);",
+      "  float fresnel = pow(1.0 - abs(dot(N, V)), 1.85);",
+      "  float scanFine = 0.5 + 0.5 * sin(vLocalPos.y * 46.0 - uTime * 4.0);",
+      "  float laserSweep = smoothstep(0.90, 1.0, sin(vLocalPos.y * 2.1 - uTime * 1.5));",
+      "  vec3 col = mix(uColorCore, uColorRim, fresnel * 0.85);",
+      "  col = mix(col, uColorBeam, laserSweep * 0.65);",
+      "  float alpha = 0.22 + fresnel * 0.58 + scanFine * 0.08 + laserSweep * 0.28;",
+      "  gl_FragColor = vec4(col, clamp(alpha, 0.15, 0.92));",
+      "}"
+    ].join("\n");
+
+    const holoSphereGeo = new THREE.SphereGeometry(1.32, 48, 36);
+    const holoSphereMat = new THREE.ShaderMaterial({
+      uniforms: holoUniforms,
+      vertexShader: holoVert,
+      fragmentShader: holoFrag,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    root.add(new THREE.Mesh(holoSphereGeo, holoSphereMat));
+
+    // 2. Holographic Geodesic Wireframe Shell
+    const wireGeo = new THREE.IcosahedronGeometry(1.34, 3);
     const wireMat = new THREE.MeshBasicMaterial({
-      color: 0xc8922e,
+      color: 0x8c3b1a,
       wireframe: true,
       transparent: true,
-      opacity: 0.26,
+      opacity: 0.24,
     });
-    const globe = new THREE.Mesh(sphereGeo, wireMat);
+    const globe = new THREE.Mesh(wireGeo, wireMat);
     root.add(globe);
 
-    const coreGeo = new THREE.SphereGeometry(1.31, 24, 18);
-    const coreMat = new THREE.MeshBasicMaterial({
-      color: 0x1a1410,
+    // 3. Fibonacci 3D Surface Point-Cloud Lattice (600 holographic nodes)
+    const dotCount = 600;
+    const dotPos = new Float32Array(dotCount * 3);
+    const dotColors = new Float32Array(dotCount * 3);
+    const goldenRatio = (1 + Math.sqrt(5)) / 2;
+    const cTeal = new THREE.Color(0x0ea5e9);
+    const cTerra = new THREE.Color(0x8c3b1a);
+    const cGold = new THREE.Color(0xd97706);
+
+    for (let i = 0; i < dotCount; i++) {
+      const theta = (2 * Math.PI * i) / goldenRatio;
+      const phi = Math.acos(1 - (2 * (i + 0.5)) / dotCount);
+      const r = 1.355;
+      dotPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      dotPos[i * 3 + 1] = r * Math.cos(phi);
+      dotPos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+
+      const mixCol = i % 3 === 0 ? cGold : (i % 2 === 0 ? cTeal : cTerra);
+      dotColors[i * 3] = mixCol.r;
+      dotColors[i * 3 + 1] = mixCol.g;
+      dotColors[i * 3 + 2] = mixCol.b;
+    }
+    const cloudGeo = new THREE.BufferGeometry();
+    cloudGeo.setAttribute("position", new THREE.BufferAttribute(dotPos, 3));
+    cloudGeo.setAttribute("color", new THREE.BufferAttribute(dotColors, 3));
+    const cloudMat = new THREE.PointsMaterial({
+      size: 0.035,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.88,
+    });
+    const pointCloud = new THREE.Points(cloudGeo, cloudMat);
+    root.add(pointCloud);
+
+    // 4. Sweeping Internal Horizontal Laser Scan Disc
+    const scanRingGeo = new THREE.RingGeometry(0.1, 1.31, 48);
+    scanRingGeo.rotateX(Math.PI / 2);
+    const scanRingMat = new THREE.MeshBasicMaterial({
+      color: 0x0ea5e9,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false,
+    });
+    const scanDisc = new THREE.Mesh(scanRingGeo, scanRingMat);
+    root.add(scanDisc);
+
+    // 5. Triple Counter-Rotating Orbital Astrolabe Rings (Floating freely outside the sphere)
+    const ringMatGold = new THREE.MeshBasicMaterial({
+      color: 0xc8922e,
+      side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.65,
     });
-    root.add(new THREE.Mesh(coreGeo, coreMat));
-
-    const ringGeo1 = new THREE.RingGeometry(1.62, 1.64, 64);
-    const ringMat = new THREE.MeshBasicMaterial({
-      color: 0xd99b38,
+    const ringMatTeal = new THREE.MeshBasicMaterial({
+      color: 0x1d5c63,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.55,
     });
-    const ring1 = new THREE.Mesh(ringGeo1, ringMat);
-    ring1.rotation.x = Math.PI / 2.6;
-    ring1.rotation.y = 0.3;
+    const ringMatTerra = new THREE.MeshBasicMaterial({
+      color: 0x8c3b1a,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.5,
+    });
+
+    const ring1 = new THREE.Mesh(new THREE.RingGeometry(1.56, 1.59, 72), ringMatGold);
+    ring1.rotation.x = Math.PI / 2.35;
+    ring1.rotation.y = 0.32;
     root.add(ring1);
 
-    const ringGeo2 = new THREE.RingGeometry(1.82, 1.835, 64);
-    const ring2 = new THREE.Mesh(ringGeo2, ringMat);
-    ring2.rotation.x = -Math.PI / 3.2;
-    ring2.rotation.z = 0.4;
+    const ring2 = new THREE.Mesh(new THREE.RingGeometry(1.74, 1.765, 72), ringMatTeal);
+    ring2.rotation.x = -Math.PI / 3.0;
+    ring2.rotation.z = 0.45;
     root.add(ring2);
 
-    const beaconPositions = [
-      [0.85, 0.62, 0.88],
-      [0.72, 0.48, 1.05],
-      [0.95, 0.35, 0.90],
-      [-0.65, 0.78, 0.91],
-      [0.42, -0.55, 1.18],
-      [-0.82, -0.42, 0.98],
-      [0.15, 0.98, 0.92],
-      [-0.38, 0.52, 1.19],
-    ];
-    const dotGeo = new THREE.SphereGeometry(0.05, 12, 12);
-    const dotMat = new THREE.MeshBasicMaterial({ color: 0xffb347 });
+    const ring3 = new THREE.Mesh(
+      new THREE.RingGeometry(1.88, 1.915, 48, 1, 0, Math.PI * 1.4),
+      ringMatTerra
+    );
+    ring3.rotation.x = Math.PI / 2.1;
+    root.add(ring3);
 
-    beaconPositions.forEach(function (pos) {
-      const v = new THREE.Vector3(pos[0], pos[1], pos[2]).normalize().multiplyScalar(1.37);
-      const dot = new THREE.Mesh(dotGeo, dotMat);
-      dot.position.copy(v);
-      root.add(dot);
+    // 6. Cebu Landmark Beacons + Pulsing Surface Radar Rings + 3D Telemetry Spikes & Arcs
+    const beaconPositions = [
+      [0.85, 0.62, 0.88],   // Basilica Minore del Sto. Nino
+      [0.72, 0.48, 1.05],   // Magellan's Cross
+      [0.95, 0.35, 0.90],   // Fort San Pedro
+      [-0.65, 0.78, 0.91],  // Yap-Sandiego Ancestral House
+      [0.42, -0.55, 1.18],  // Museo Sugbo
+      [-0.82, -0.42, 0.98], // Casa Gorordo Museum
+      [0.15, 0.98, 0.92],   // Taoist Temple
+      [-0.38, 0.52, 1.19],  // Heritage of Cebu Monument
+    ];
+
+    const beaconGroup = new THREE.Group();
+    root.add(beaconGroup);
+
+    const dotGeo = new THREE.SphereGeometry(0.042, 12, 12);
+    const dotMat = new THREE.MeshBasicMaterial({ color: 0xd97706 });
+    const haloGeo = new THREE.RingGeometry(0.055, 0.082, 24);
+    const haloMat = new THREE.MeshBasicMaterial({
+      color: 0x0ea5e9,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.85,
     });
 
-    let targetRotX = 0.15;
+    const beaconVecs = [];
+    const pulseHalos = [];
+
+    beaconPositions.forEach(function (pos, idx) {
+      const surfaceVec = new THREE.Vector3(pos[0], pos[1], pos[2]).normalize().multiplyScalar(1.35);
+      beaconVecs.push(surfaceVec);
+
+      const dot = new THREE.Mesh(dotGeo, dotMat);
+      dot.position.copy(surfaceVec);
+      beaconGroup.add(dot);
+
+      const halo = new THREE.Mesh(haloGeo, haloMat.clone());
+      halo.position.copy(surfaceVec.clone().multiplyScalar(1.01));
+      halo.lookAt(surfaceVec.clone().multiplyScalar(2));
+      halo.userData = { phase: idx * 0.8 };
+      beaconGroup.add(halo);
+      pulseHalos.push(halo);
+
+      const spikeEnd = surfaceVec.clone().multiplyScalar(1.16 + (idx % 3) * 0.04);
+      const spikeGeo = new THREE.BufferGeometry().setFromPoints([surfaceVec, spikeEnd]);
+      const spikeMat = new THREE.LineBasicMaterial({
+        color: idx % 2 === 0 ? 0x0ea5e9 : 0x8c3b1a,
+        transparent: true,
+        opacity: 0.75,
+      });
+      beaconGroup.add(new THREE.Line(spikeGeo, spikeMat));
+    });
+
+    const arcPairs = [
+      [0, 1], [1, 2], [0, 7], [7, 3], [2, 4], [4, 5], [3, 6], [6, 0],
+    ];
+    arcPairs.forEach(function (pair, idx) {
+      const vStart = beaconVecs[pair[0]];
+      const vEnd = beaconVecs[pair[1]];
+      const vMid = vStart.clone().add(vEnd).multiplyScalar(0.5).normalize().multiplyScalar(1.68);
+      const curve = new THREE.QuadraticBezierCurve3(vStart, vMid, vEnd);
+      const arcGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(28));
+      const arcMat = new THREE.LineBasicMaterial({
+        color: idx % 2 === 0 ? 0x0ea5e9 : 0xc8922e,
+        transparent: true,
+        opacity: 0.65,
+      });
+      beaconGroup.add(new THREE.Line(arcGeo, arcMat));
+    });
+
+    // Interactive Click-and-Drag 360° Spin + Pointer Parallax
+    let isDragging = false;
+    let prevX = 0;
+    let prevY = 0;
+    let dragRotY = 0;
+    let dragRotX = 0;
+    let targetRotX = 0.14;
     let targetRotY = 0;
+
+    container.addEventListener("pointerdown", function (e) {
+      isDragging = true;
+      prevX = e.clientX;
+      prevY = e.clientY;
+    });
+    window.addEventListener("pointerup", function () {
+      isDragging = false;
+    });
     window.addEventListener("pointermove", function (e) {
-      targetRotY = (e.clientX / window.innerWidth - 0.5) * 0.65;
-      targetRotX = 0.15 + (e.clientY / window.innerHeight - 0.5) * 0.45;
+      if (isDragging) {
+        dragRotY += (e.clientX - prevX) * 0.008;
+        dragRotX += (e.clientY - prevY) * 0.006;
+        prevX = e.clientX;
+        prevY = e.clientY;
+      }
+      targetRotY = (e.clientX / window.innerWidth - 0.5) * 0.55 + dragRotY;
+      targetRotX = 0.14 + (e.clientY / window.innerHeight - 0.5) * 0.35 + dragRotX;
     });
 
     renderer.render(scene, camera);
     if (reduceMotion) return;
 
+    let t = 0;
     function animate() {
       requestAnimationFrame(animate);
+      t += 0.02;
+      holoUniforms.uTime.value = t;
+
+      // Smooth floating levitation bob in open 3D space
+      root.position.y = Math.sin(t * 0.9) * 0.07;
+
+      // Rotate hologram layers
       globe.rotation.y += 0.0032;
-      ring1.rotation.z += 0.002;
-      ring2.rotation.z -= 0.0016;
-      root.rotation.y += (targetRotY - root.rotation.y) * 0.05;
-      root.rotation.x += (targetRotX - root.rotation.x) * 0.05;
+      pointCloud.rotation.y += 0.0032;
+      beaconGroup.rotation.y += 0.0032;
+
+      // Counter-rotate orbital rings
+      ring1.rotation.z += 0.0035;
+      ring2.rotation.z -= 0.0026;
+      ring3.rotation.z += 0.0045;
+
+      // Sweep internal hologram scan disc vertically
+      const sweepY = Math.sin(t * 0.85) * 1.15;
+      scanDisc.position.y = sweepY;
+      const rScale = Math.max(0.15, Math.sqrt(Math.max(0, 1.32 * 1.32 - sweepY * sweepY)) / 1.31);
+      scanDisc.scale.set(rScale, 1, rScale);
+
+      // Pulse beacon radar halos
+      for (let i = 0; i < pulseHalos.length; i++) {
+        const h = pulseHalos[i];
+        const s = 1 + 0.55 * (0.5 + 0.5 * Math.sin(t * 2.4 + h.userData.phase));
+        h.scale.set(s, s, 1);
+        h.material.opacity = 1.15 - s * 0.55;
+      }
+
+      root.rotation.y += (targetRotY - root.rotation.y) * 0.06;
+      root.rotation.x += (targetRotX - root.rotation.x) * 0.06;
       renderer.render(scene, camera);
     }
     animate();
 
     window.addEventListener("resize", function () {
-      const w = container.clientWidth || 420;
+      const w = container.clientWidth || 460;
       const h = container.clientHeight || 420;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
