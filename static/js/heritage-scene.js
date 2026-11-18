@@ -211,11 +211,11 @@
   }
 
   /* ==========================================================================
-   * 2. STANDALONE 3D HOLOGRAPHIC GLOBE (#wi-three-canvas)
-   *    Free-floating in open 3D space (not trapped inside a dark rectangle).
-   *    Includes GLSL Fresnel + scanline shader, Fibonacci lattice points,
-   *    curved geodesic data arcs, pulsing Cebu beacon radar rings, and
-   *    click-and-drag 360° interactive rotation.
+   * 2. STANDALONE REALISTIC 3D EARTH GLOBE (#wi-three-canvas)
+   *    Free-floating realistic 3D planet with deep ocean, green continents,
+   *    elevated highland relief, specular water reflections, soft drifting
+   *    cloud layer, sky-blue atmosphere rim, Cebu heritage landmark pins,
+   *    and click-and-drag 360° interactive rotation.
    * ========================================================================== */
   function initHeroGlobe() {
     const container = document.getElementById("wi-three-canvas");
@@ -225,9 +225,8 @@
     const height = container.clientHeight || 420;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 100);
-    // Pulled back so all orbital rings and spikes float freely without clipping the canvas edges
-    camera.position.set(0, 0.15, 5.15);
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+    camera.position.set(0, 0.12, 4.75);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(width, height);
@@ -238,20 +237,19 @@
     const root = new THREE.Group();
     scene.add(root);
 
-    // 1. Custom GLSL Hologram Shader Sphere (Translucent Deep Teal + Brass Rim + Laser Scanline)
-    const holoUniforms = {
+    // 1. Realistic GLSL Procedural Earth Shader (Blue Oceans, Specular Sun Glint,
+    //    Coastal Shallows, Lush Green Forests/Plains, Highland Mountains & Cloud Layer)
+    const earthUniforms = {
       uTime: { value: 0 },
-      uColorCore: { value: new THREE.Color(0x0d3b42) }, // Deep Holographic Teal
-      uColorRim: { value: new THREE.Color(0xc8922e) },  // Antique Brass Gold
-      uColorBeam: { value: new THREE.Color(0x38bdf8) }, // Cyan Laser Sweep
+      uLightDir: { value: new THREE.Vector3(0.75, 0.55, 0.9).normalize() },
     };
 
-    const holoVert = [
+    const earthVert = [
       "varying vec3 vNormal;",
       "varying vec3 vViewPos;",
       "varying vec3 vLocalPos;",
       "void main() {",
-      "  vLocalPos = position;",
+      "  vLocalPos = normalize(position);",
       "  vNormal = normalize(normalMatrix * normal);",
       "  vec4 mvPos = modelViewMatrix * vec4(position, 1.0);",
       "  vViewPos = -mvPos.xyz;",
@@ -259,134 +257,139 @@
       "}"
     ].join("\n");
 
-    const holoFrag = [
+    const earthFrag = [
       "uniform float uTime;",
-      "uniform vec3 uColorCore;",
-      "uniform vec3 uColorRim;",
-      "uniform vec3 uColorBeam;",
+      "uniform vec3 uLightDir;",
       "varying vec3 vNormal;",
       "varying vec3 vViewPos;",
       "varying vec3 vLocalPos;",
+      "",
+      "// 3D Simplex-like FBM noise for realistic continental coastlines & islands",
+      "float hash(vec3 p) {",
+      "  p = fract(p * 0.3183099 + 0.1);",
+      "  p *= 17.0;",
+      "  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));",
+      "}",
+      "float noise(vec3 x) {",
+      "  vec3 i = floor(x);",
+      "  vec3 f = fract(x);",
+      "  f = f * f * (3.0 - 2.0 * f);",
+      "  return mix(",
+      "    mix(mix(hash(i + vec3(0,0,0)), hash(i + vec3(1,0,0)), f.x),",
+      "        mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),",
+      "    mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),",
+      "        mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);",
+      "}",
+      "float fbm(vec3 p) {",
+      "  float v = 0.0;",
+      "  float a = 0.52;",
+      "  for (int i = 0; i < 5; i++) {",
+      "    v += a * noise(p);",
+      "    p = p * 2.07 + vec3(1.7, 9.2, 3.4);",
+      "    a *= 0.5;",
+      "  }",
+      "  return v;",
+      "}",
+      "",
       "void main() {",
       "  vec3 N = normalize(vNormal);",
       "  vec3 V = normalize(vViewPos);",
-      "  float fresnel = pow(1.0 - abs(dot(N, V)), 1.85);",
-      "  float scanFine = 0.5 + 0.5 * sin(vLocalPos.y * 46.0 - uTime * 4.0);",
-      "  float laserSweep = smoothstep(0.90, 1.0, sin(vLocalPos.y * 2.1 - uTime * 1.5));",
-      "  vec3 col = mix(uColorCore, uColorRim, fresnel * 0.85);",
-      "  col = mix(col, uColorBeam, laserSweep * 0.65);",
-      "  float alpha = 0.22 + fresnel * 0.58 + scanFine * 0.08 + laserSweep * 0.28;",
-      "  gl_FragColor = vec4(col, clamp(alpha, 0.15, 0.92));",
+      "  vec3 L = normalize(uLightDir);",
+      "",
+      "  // Continental elevation field",
+      "  vec3 p = vLocalPos * 2.45 + vec3(0.4, 1.1, 2.2);",
+      "  float h = fbm(p);",
+      "  float detail = fbm(vLocalPos * 9.5);",
+      "  float seaLevel = 0.495;",
+      "",
+      "  // Realistic Ocean Palette (deep ocean -> turquoise coastal shelf)",
+      "  vec3 deepOcean = vec3(0.05, 0.23, 0.46);",
+      "  vec3 midOcean  = vec3(0.08, 0.36, 0.62);",
+      "  vec3 shallow   = vec3(0.14, 0.58, 0.71);",
+      "  float waterDepth = clamp((seaLevel - h) / 0.22, 0.0, 1.0);",
+      "  vec3 oceanCol = mix(shallow, mix(midOcean, deepOcean, waterDepth), smoothstep(0.0, 0.65, waterDepth));",
+      "",
+      "  // Realistic Land Palette (sandy beach -> lush emerald lowland -> deep forest -> mountain -> polar/peak)",
+      "  vec3 sandCol     = vec3(0.84, 0.78, 0.58);",
+      "  vec3 lushGreen   = vec3(0.20, 0.54, 0.24);",
+      "  vec3 deepForest  = vec3(0.11, 0.38, 0.17);",
+      "  vec3 highland    = vec3(0.46, 0.42, 0.29);",
+      "  vec3 mountainTop = vec3(0.88, 0.89, 0.90);",
+      "",
+      "  float landElev = clamp((h - seaLevel) / 0.28, 0.0, 1.0);",
+      "  vec3 landCol = mix(sandCol, lushGreen, smoothstep(0.0, 0.10, landElev));",
+      "  landCol = mix(landCol, deepForest, smoothstep(0.12, 0.48, landElev + detail * 0.15));",
+      "  landCol = mix(landCol, highland, smoothstep(0.52, 0.80, landElev));",
+      "  landCol = mix(landCol, mountainTop, smoothstep(0.80, 0.98, landElev));",
+      "",
+      "  // Polar latitude snow caps",
+      "  float lat = abs(vLocalPos.y);",
+      "  landCol = mix(landCol, vec3(0.95, 0.97, 0.99), smoothstep(0.76, 0.88, lat + detail * 0.08));",
+      "",
+      "  // Smooth anti-aliased coastline transition",
+      "  float isLand = smoothstep(seaLevel - 0.008, seaLevel + 0.008, h);",
+      "  vec3 surfaceCol = mix(oceanCol, landCol, isLand);",
+      "",
+      "  // Soft drifting atmospheric clouds",
+      "  vec3 cloudPos = vLocalPos * 3.4 + vec3(uTime * 0.015, 0.0, -uTime * 0.01);",
+      "  float clouds = smoothstep(0.55, 0.78, fbm(cloudPos));",
+      "  surfaceCol = mix(surfaceCol, vec3(0.98, 0.99, 1.0), clouds * 0.55);",
+      "",
+      "  // Directional sunlight + ambient sky hemisphere + ocean specular sun reflection",
+      "  float diff = max(dot(N, L), 0.0);",
+      "  float ambient = 0.34;",
+      "  vec3 H = normalize(L + V);",
+      "  float spec = pow(max(dot(N, H), 0.0), 36.0) * (1.0 - isLand) * (1.0 - clouds * 0.8) * 0.55;",
+      "",
+      "  // Soft natural blue atmosphere rim",
+      "  float fresnel = pow(1.0 - max(dot(N, V), 0.0), 2.8);",
+      "  vec3 atmoCol = vec3(0.38, 0.72, 0.96);",
+      "",
+      "  vec3 finalCol = surfaceCol * (ambient + diff * 0.82) + vec3(1.0, 0.97, 0.90) * spec;",
+      "  finalCol = mix(finalCol, atmoCol, fresnel * 0.38);",
+      "  gl_FragColor = vec4(finalCol, 1.0);",
       "}"
     ].join("\n");
 
-    const holoSphereGeo = new THREE.SphereGeometry(1.32, 48, 36);
-    const holoSphereMat = new THREE.ShaderMaterial({
-      uniforms: holoUniforms,
-      vertexShader: holoVert,
-      fragmentShader: holoFrag,
+    const earthGeo = new THREE.SphereGeometry(1.42, 64, 48);
+    const earthMat = new THREE.ShaderMaterial({
+      uniforms: earthUniforms,
+      vertexShader: earthVert,
+      fragmentShader: earthFrag,
+    });
+    const earthMesh = new THREE.Mesh(earthGeo, earthMat);
+    root.add(earthMesh);
+
+    // 2. Soft Sky-Blue Outer Atmosphere Halo
+    const atmoGeo = new THREE.SphereGeometry(1.51, 48, 36);
+    const atmoMat = new THREE.ShaderMaterial({
+      vertexShader: earthVert,
+      fragmentShader: [
+        "varying vec3 vNormal;",
+        "varying vec3 vViewPos;",
+        "void main() {",
+        "  float rim = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPos))), 3.2);",
+        "  gl_FragColor = vec4(0.35, 0.70, 0.95, rim * 0.32);",
+        "}"
+      ].join("\n"),
       transparent: true,
       depthWrite: false,
-      side: THREE.DoubleSide,
+      side: THREE.BackSide,
     });
-    root.add(new THREE.Mesh(holoSphereGeo, holoSphereMat));
+    root.add(new THREE.Mesh(atmoGeo, atmoMat));
 
-    // 2. Holographic Geodesic Wireframe Shell
-    const wireGeo = new THREE.IcosahedronGeometry(1.34, 3);
-    const wireMat = new THREE.MeshBasicMaterial({
-      color: 0x8c3b1a,
-      wireframe: true,
-      transparent: true,
-      opacity: 0.24,
-    });
-    const globe = new THREE.Mesh(wireGeo, wireMat);
-    root.add(globe);
-
-    // 3. Fibonacci 3D Surface Point-Cloud Lattice (600 holographic nodes)
-    const dotCount = 600;
-    const dotPos = new Float32Array(dotCount * 3);
-    const dotColors = new Float32Array(dotCount * 3);
-    const goldenRatio = (1 + Math.sqrt(5)) / 2;
-    const cTeal = new THREE.Color(0x0ea5e9);
-    const cTerra = new THREE.Color(0x8c3b1a);
-    const cGold = new THREE.Color(0xd97706);
-
-    for (let i = 0; i < dotCount; i++) {
-      const theta = (2 * Math.PI * i) / goldenRatio;
-      const phi = Math.acos(1 - (2 * (i + 0.5)) / dotCount);
-      const r = 1.355;
-      dotPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      dotPos[i * 3 + 1] = r * Math.cos(phi);
-      dotPos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
-
-      const mixCol = i % 3 === 0 ? cGold : (i % 2 === 0 ? cTeal : cTerra);
-      dotColors[i * 3] = mixCol.r;
-      dotColors[i * 3 + 1] = mixCol.g;
-      dotColors[i * 3 + 2] = mixCol.b;
-    }
-    const cloudGeo = new THREE.BufferGeometry();
-    cloudGeo.setAttribute("position", new THREE.BufferAttribute(dotPos, 3));
-    cloudGeo.setAttribute("color", new THREE.BufferAttribute(dotColors, 3));
-    const cloudMat = new THREE.PointsMaterial({
-      size: 0.035,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.88,
-    });
-    const pointCloud = new THREE.Points(cloudGeo, cloudMat);
-    root.add(pointCloud);
-
-    // 4. Sweeping Internal Horizontal Laser Scan Disc
-    const scanRingGeo = new THREE.RingGeometry(0.1, 1.31, 48);
-    scanRingGeo.rotateX(Math.PI / 2);
-    const scanRingMat = new THREE.MeshBasicMaterial({
-      color: 0x0ea5e9,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.22,
-      depthWrite: false,
-    });
-    const scanDisc = new THREE.Mesh(scanRingGeo, scanRingMat);
-    root.add(scanDisc);
-
-    // 5. Triple Counter-Rotating Orbital Astrolabe Rings (Floating freely outside the sphere)
+    // 3. Subtle Brass Heritage Equator Ring & Cebu Landmark Pins
     const ringMatGold = new THREE.MeshBasicMaterial({
       color: 0xc8922e,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.65,
+      opacity: 0.32,
     });
-    const ringMatTeal = new THREE.MeshBasicMaterial({
-      color: 0x1d5c63,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.55,
-    });
-    const ringMatTerra = new THREE.MeshBasicMaterial({
-      color: 0x8c3b1a,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.5,
-    });
-
-    const ring1 = new THREE.Mesh(new THREE.RingGeometry(1.56, 1.59, 72), ringMatGold);
-    ring1.rotation.x = Math.PI / 2.35;
-    ring1.rotation.y = 0.32;
+    const ring1 = new THREE.Mesh(new THREE.RingGeometry(1.66, 1.678, 72), ringMatGold);
+    ring1.rotation.x = Math.PI / 2.25;
+    ring1.rotation.y = 0.25;
     root.add(ring1);
 
-    const ring2 = new THREE.Mesh(new THREE.RingGeometry(1.74, 1.765, 72), ringMatTeal);
-    ring2.rotation.x = -Math.PI / 3.0;
-    ring2.rotation.z = 0.45;
-    root.add(ring2);
-
-    const ring3 = new THREE.Mesh(
-      new THREE.RingGeometry(1.88, 1.915, 48, 1, 0, Math.PI * 1.4),
-      ringMatTerra
-    );
-    ring3.rotation.x = Math.PI / 2.1;
-    root.add(ring3);
-
-    // 6. Cebu Landmark Beacons + Pulsing Surface Radar Rings + 3D Telemetry Spikes & Arcs
     const beaconPositions = [
       [0.85, 0.62, 0.88],   // Basilica Minore del Sto. Nino
       [0.72, 0.48, 1.05],   // Magellan's Cross
@@ -401,59 +404,29 @@
     const beaconGroup = new THREE.Group();
     root.add(beaconGroup);
 
-    const dotGeo = new THREE.SphereGeometry(0.042, 12, 12);
-    const dotMat = new THREE.MeshBasicMaterial({ color: 0xd97706 });
-    const haloGeo = new THREE.RingGeometry(0.055, 0.082, 24);
+    const dotGeo = new THREE.SphereGeometry(0.036, 12, 12);
+    const dotMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+    const haloGeo = new THREE.RingGeometry(0.048, 0.068, 24);
     const haloMat = new THREE.MeshBasicMaterial({
-      color: 0x0ea5e9,
+      color: 0xffffff,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.8,
     });
 
-    const beaconVecs = [];
     const pulseHalos = [];
-
     beaconPositions.forEach(function (pos, idx) {
-      const surfaceVec = new THREE.Vector3(pos[0], pos[1], pos[2]).normalize().multiplyScalar(1.35);
-      beaconVecs.push(surfaceVec);
-
+      const surfaceVec = new THREE.Vector3(pos[0], pos[1], pos[2]).normalize().multiplyScalar(1.435);
       const dot = new THREE.Mesh(dotGeo, dotMat);
       dot.position.copy(surfaceVec);
       beaconGroup.add(dot);
 
       const halo = new THREE.Mesh(haloGeo, haloMat.clone());
-      halo.position.copy(surfaceVec.clone().multiplyScalar(1.01));
+      halo.position.copy(surfaceVec.clone().multiplyScalar(1.005));
       halo.lookAt(surfaceVec.clone().multiplyScalar(2));
       halo.userData = { phase: idx * 0.8 };
       beaconGroup.add(halo);
       pulseHalos.push(halo);
-
-      const spikeEnd = surfaceVec.clone().multiplyScalar(1.16 + (idx % 3) * 0.04);
-      const spikeGeo = new THREE.BufferGeometry().setFromPoints([surfaceVec, spikeEnd]);
-      const spikeMat = new THREE.LineBasicMaterial({
-        color: idx % 2 === 0 ? 0x0ea5e9 : 0x8c3b1a,
-        transparent: true,
-        opacity: 0.75,
-      });
-      beaconGroup.add(new THREE.Line(spikeGeo, spikeMat));
-    });
-
-    const arcPairs = [
-      [0, 1], [1, 2], [0, 7], [7, 3], [2, 4], [4, 5], [3, 6], [6, 0],
-    ];
-    arcPairs.forEach(function (pair, idx) {
-      const vStart = beaconVecs[pair[0]];
-      const vEnd = beaconVecs[pair[1]];
-      const vMid = vStart.clone().add(vEnd).multiplyScalar(0.5).normalize().multiplyScalar(1.68);
-      const curve = new THREE.QuadraticBezierCurve3(vStart, vMid, vEnd);
-      const arcGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(28));
-      const arcMat = new THREE.LineBasicMaterial({
-        color: idx % 2 === 0 ? 0x0ea5e9 : 0xc8922e,
-        transparent: true,
-        opacity: 0.65,
-      });
-      beaconGroup.add(new THREE.Line(arcGeo, arcMat));
     });
 
     // Interactive Click-and-Drag 360° Spin + Pointer Parallax
@@ -491,33 +464,21 @@
     function animate() {
       requestAnimationFrame(animate);
       t += 0.02;
-      holoUniforms.uTime.value = t;
+      earthUniforms.uTime.value = t;
 
-      // Smooth floating levitation bob in open 3D space
-      root.position.y = Math.sin(t * 0.9) * 0.07;
+      // Gentle floating bob
+      root.position.y = Math.sin(t * 0.8) * 0.05;
 
-      // Rotate hologram layers
-      globe.rotation.y += 0.0032;
-      pointCloud.rotation.y += 0.0032;
-      beaconGroup.rotation.y += 0.0032;
+      // Rotate Earth & landmarks together
+      earthMesh.rotation.y += 0.0025;
+      beaconGroup.rotation.y += 0.0025;
+      ring1.rotation.z += 0.0018;
 
-      // Counter-rotate orbital rings
-      ring1.rotation.z += 0.0035;
-      ring2.rotation.z -= 0.0026;
-      ring3.rotation.z += 0.0045;
-
-      // Sweep internal hologram scan disc vertically
-      const sweepY = Math.sin(t * 0.85) * 1.15;
-      scanDisc.position.y = sweepY;
-      const rScale = Math.max(0.15, Math.sqrt(Math.max(0, 1.32 * 1.32 - sweepY * sweepY)) / 1.31);
-      scanDisc.scale.set(rScale, 1, rScale);
-
-      // Pulse beacon radar halos
       for (let i = 0; i < pulseHalos.length; i++) {
         const h = pulseHalos[i];
-        const s = 1 + 0.55 * (0.5 + 0.5 * Math.sin(t * 2.4 + h.userData.phase));
+        const s = 1 + 0.45 * (0.5 + 0.5 * Math.sin(t * 2.2 + h.userData.phase));
         h.scale.set(s, s, 1);
-        h.material.opacity = 1.15 - s * 0.55;
+        h.material.opacity = 1.05 - s * 0.5;
       }
 
       root.rotation.y += (targetRotY - root.rotation.y) * 0.06;
