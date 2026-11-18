@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Curator Dashboard{% endblock %}
+{% block role_nav %}
+<li class="nav-item"><a class="nav-link active" href="{% url 'accounts:curator_dashboard' %}">Dashboard</a></li>
+<li class="nav-item"><a class="nav-link disabled" href="#" aria-disabled="true">My Heritage Sites</a></li>
+<li class="nav-item"><a class="nav-link disabled" href="#" aria-disabled="true">Visitation Logs</a></li>
+<li class="nav-item"><a class="nav-link disabled" href="#" aria-disabled="true">Ratings</a></li>
+{% endblock %}
+{% block content %}
+<div class="dash-hero dash-curator mb-4">
+  <h1 class="h3 mb-1"><i class="bi bi-building me-2"></i>Curator Dashboard</h1>
+  <p class="mb-0">Welcome, {{ user.get_full_name|default:user.username }}{% if user.organization %} of {{ user.organization }}{% endif %}. Manage your heritage sites and record visitor activity.</p>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">My Sites</div><div class="kpi-value">0</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">All-Time Visitors</div><div class="kpi-value">0</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Avg. Rating</div><div class="kpi-value">—</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Logs This Month</div><div class="kpi-value">0</div></div></div></div>
+</div>
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">Quick Actions</div>
+      <div class="list-group list-group-flush">
+        <span class="list-group-item text-muted"><i class="bi bi-plus-circle me-2"></i>Register a heritage site <small>(coming soon)</small></span>
+        <span class="list-group-item text-muted"><i class="bi bi-clipboard-data me-2"></i>Submit visitation log <small>(coming soon)</small></span>
+        <span class="list-group-item text-muted"><i class="bi bi-star me-2"></i>Record visitor rating <small>(coming soon)</small></span>
+        <span class="list-group-item text-muted"><i class="bi bi-download me-2"></i>Export site data (CSV) <small>(coming soon)</small></span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white fw-semibold">Your Access</div>
+      <div class="card-body">
+        <p>As a <strong>Curator</strong> you have <strong>write access</strong> to heritage site records, visitation logs, and visitor ratings (BR-10).</p>
+        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-primary btn-sm">View my profile</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

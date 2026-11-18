@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Viewer Dashboard{% endblock %}
+{% block role_nav %}
+<li class="nav-item"><a class="nav-link active" href="{% url 'accounts:viewer_dashboard' %}">Dashboard</a></li>
+<li class="nav-item"><a class="nav-link disabled" href="#" aria-disabled="true">Explore Heritage Sites</a></li>
+<li class="nav-item"><a class="nav-link disabled" href="#" aria-disabled="true">Regional Overview</a></li>
+{% endblock %}
+{% block content %}
+<div class="dash-hero dash-viewer mb-4">
+  <h1 class="h3 mb-1"><i class="bi bi-compass me-2"></i>Viewer Dashboard</h1>
+  <p class="mb-0">Welcome, {{ user.get_full_name|default:user.username }}. Explore Cebu's cultural heritage landmarks and their visitor trends.</p>
+</div>
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h5"><i class="bi bi-geo-alt me-2 text-primary"></i>Heritage Sites</h2>
+      <p class="text-muted">Browse landmark profiles: history, category, district, and preservation status.</p>
+      <span class="badge text-bg-light">Coming soon</span>
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h5"><i class="bi bi-graph-up me-2 text-primary"></i>Site Analytics</h2>
+      <p class="text-muted">View foot-traffic trends, visitor demographics, and ratings for any landmark.</p>
+      <span class="badge text-bg-light">Coming soon</span>
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100"><div class="card-body">
+      <h2 class="h5"><i class="bi bi-trophy me-2 text-primary"></i>Regional Rankings</h2>
+      <p class="text-muted">Compare popularity across districts and heritage categories.</p>
+      <span class="badge text-bg-light">Coming soon</span>
+    </div></div>
+  </div>
+</div>
+<div class="alert alert-light border mt-4 mb-0"><i class="bi bi-info-circle me-2"></i>Your account has <strong>read-only</strong> access to WanderInsight dashboards.</div>
+{% endblock %}
