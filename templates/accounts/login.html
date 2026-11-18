@@ -1,14 +1,28 @@
 {% extends "base.html" %}
 {% block title %}Log in{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6 col-lg-5">
-    <div class="card auth-card shadow-sm">
-      <div class="card-body p-4 p-md-5">
-        <div class="text-center mb-4">
-          <i class="bi bi-bank2 display-5 text-primary"></i>
-          <h1 class="h3 mt-2 mb-1">Welcome back</h1>
-          <p class="text-muted">Log in to your WanderInsight account</p>
+<div class="row justify-content-center my-lg-3">
+  <div class="col-xl-10">
+    <div class="auth-shell row g-0">
+      <div class="col-lg-6 auth-visual-pane d-flex flex-column justify-content-between">
+        <div id="wi-three-canvas" class="three-canvas-wrap" aria-hidden="true"></div>
+        <div class="auth-visual-overlay">
+          <div>
+            <span class="mono-tag" style="color: var(--wi-gold);">9.0°N–11.5°N · 123.0°E–124.5°E · CEBU CORRIDOR</span>
+            <h2 class="mt-2">Preserving heritage through living data.</h2>
+            <p class="small text-white-50 mb-0">Track landmark foot-traffic, demographic origins, and structural conservation across Cebu's historic districts.</p>
+          </div>
+          <div class="border-top border-secondary pt-3 mt-4 small d-flex justify-content-between text-white-50">
+            <span><i class="bi bi-shield-check me-1" style="color: var(--wi-gold);"></i>Role-Based Access (RBAC)</span>
+            <span class="mono-tag">3D Geospatial Globe</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 p-4 p-md-5 d-flex flex-column justify-content-center">
+        <div class="mb-4">
+          <span class="mono-tag text-primary">Account Portal</span>
+          <h1 class="h2 mt-1 mb-1">Welcome back</h1>
+          <p class="text-muted small mb-0">Log in to your WanderInsight account to access your role dashboard.</p>
         </div>
         {% if form.non_field_errors %}
           <div class="alert alert-danger">{% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}</div>
@@ -18,9 +32,9 @@
           {% include "partials/field.html" with field=form.username %}
           {% include "partials/field.html" with field=form.password %}
           <input type="hidden" name="next" value="{{ next }}">
-          <button type="submit" class="btn btn-primary w-100">Log in</button>
+          <button type="submit" class="btn btn-primary w-100 mt-1">Log in to WanderInsight</button>
         </form>
-        <p class="text-center mt-3 mb-0">No account yet? <a href="{% url 'accounts:register' %}">Register</a></p>
+        <p class="text-center mt-4 mb-0 small">No account yet? <a href="{% url 'accounts:register' %}" class="fw-semibold">Create an account</a></p>
       </div>
     </div>
   </div>
