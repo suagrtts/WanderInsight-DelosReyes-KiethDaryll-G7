@@ -327,6 +327,56 @@ a:hover { color: var(--wi-primary-hover); text-decoration: underline; }
   width: 100%;
 }
 
+/* useAnimations.com SVG Stroke & Fill CurrentColor Inheritance */
+.ua-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.ua-icon svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+.ua-icon path[stroke^="rgb"]:not([stroke="rgb(255,255,255)"]),
+.ua-icon circle[stroke^="rgb"],
+.ua-icon rect[stroke^="rgb"],
+.ua-icon polyline[stroke^="rgb"],
+.ua-icon line[stroke^="rgb"] {
+  stroke: currentColor !important;
+}
+.ua-icon path[fill="rgb(0,0,0)"],
+.ua-icon circle[fill="rgb(0,0,0)"] {
+  fill: currentColor !important;
+}
+
+/* Password Visibility Toggle Button (useAnimations visibility-v2) */
+.ua-pwd-btn {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--wi-ink-muted);
+  padding: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 0.35rem;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+.ua-pwd-btn:hover,
+.ua-pwd-btn:focus-visible {
+  color: var(--wi-primary);
+  background: rgba(140, 59, 26, 0.08);
+  outline: none;
+}
+
 /* Entrance animation respecting reduced motion */
 @media (prefers-reduced-motion: no-preference) {
   [data-enter] {

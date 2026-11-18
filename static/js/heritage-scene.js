@@ -134,9 +134,10 @@
     if (toggleBtn) {
       toggleBtn.addEventListener("click", function () {
         paused = !paused;
-        toggleBtn.innerHTML = paused
-          ? '<i class="bi bi-play-fill me-1"></i>Resume 3D'
-          : '<i class="bi bi-pause-fill me-1"></i>Pause 3D';
+        const lbl = document.getElementById("wi-bg-toggle-label");
+        if (lbl) {
+          lbl.textContent = paused ? "Resume 3D" : "Pause 3D";
+        }
       });
     }
 

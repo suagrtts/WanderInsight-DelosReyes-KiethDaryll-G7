@@ -8,33 +8,42 @@
         <div id="wi-three-canvas" class="three-canvas-wrap" aria-hidden="true"></div>
         <div class="auth-visual-overlay">
           <div>
-            <span class="mono-tag" style="color: var(--wi-gold);">9.0°N–11.5°N · 123.0°E–124.5°E · CEBU CORRIDOR</span>
+            <span class="mono-tag d-inline-flex align-items-center gap-1" style="color: var(--wi-gold);">
+              <span class="ua-icon" data-ua="compass" data-ua-interaction="hover-replay" data-ua-size="16"></span>9.0°N–11.5°N · 123.0°E–124.5°E · CEBU CORRIDOR
+            </span>
             <h2 class="mt-2">Preserving heritage through living data.</h2>
             <p class="small text-white-50 mb-0">Track landmark foot-traffic, demographic origins, and structural conservation across Cebu's historic districts.</p>
           </div>
-          <div class="border-top border-secondary pt-3 mt-4 small d-flex justify-content-between text-white-50">
-            <span><i class="bi bi-shield-check me-1" style="color: var(--wi-gold);"></i>Role-Based Access (RBAC)</span>
-            <span class="mono-tag">3D Geospatial Globe</span>
+          <div class="border-top border-secondary pt-3 mt-4 small d-flex justify-content-between align-items-center text-white-50">
+            <span class="d-inline-flex align-items-center gap-1 ua-trigger"><span class="ua-icon" data-ua="shield" data-ua-interaction="hover-replay" data-ua-size="18" style="color: var(--wi-gold);"></span>Role-Based Access (RBAC)</span>
+            <span class="mono-tag d-inline-flex align-items-center gap-1 ua-trigger"><span class="ua-icon" data-ua="globe" data-ua-interaction="hover-loop" data-ua-size="16" style="color: var(--wi-gold);"></span>3D Geospatial Globe</span>
           </div>
         </div>
       </div>
       <div class="col-lg-6 p-4 p-md-5 d-flex flex-column justify-content-center">
         <div class="mb-4">
-          <span class="mono-tag text-primary">Account Portal</span>
+          <span class="mono-tag text-primary d-inline-flex align-items-center gap-1"><span class="ua-icon" data-ua="lock" data-ua-interaction="click-toggle" data-ua-size="16"></span>Account Portal</span>
           <h1 class="h2 mt-1 mb-1">Welcome back</h1>
           <p class="text-muted small mb-0">Log in to your WanderInsight account to access your role dashboard.</p>
         </div>
         {% if form.non_field_errors %}
-          <div class="alert alert-danger">{% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}</div>
+          <div class="alert alert-danger d-flex align-items-center gap-2">
+            <span class="ua-icon" data-ua="alert-circle" data-ua-interaction="loop" data-ua-size="20"></span>
+            <div>{% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}</div>
+          </div>
         {% endif %}
         <form method="post" novalidate>
           {% csrf_token %}
           {% include "partials/field.html" with field=form.username %}
           {% include "partials/field.html" with field=form.password %}
           <input type="hidden" name="next" value="{{ next }}">
-          <button type="submit" class="btn btn-primary w-100 mt-1">Log in to WanderInsight</button>
+          <button type="submit" class="btn btn-primary w-100 mt-1 d-inline-flex align-items-center justify-content-center gap-2">
+            <span class="ua-icon" data-ua="log-in" data-ua-interaction="click-replay" data-ua-size="20"></span>
+            <span>Log in to WanderInsight</span>
+            <span class="ua-icon" data-ua="arrow-right" data-ua-interaction="hover-replay" data-ua-size="18"></span>
+          </button>
         </form>
-        <p class="text-center mt-4 mb-0 small">No account yet? <a href="{% url 'accounts:register' %}" class="fw-semibold">Create an account</a></p>
+        <p class="text-center mt-4 mb-0 small">No account yet? <a href="{% url 'accounts:register' %}" class="fw-semibold d-inline-flex align-items-center gap-1">Create an account <span class="ua-icon" data-ua="arrow-up-right" data-ua-interaction="hover-replay" data-ua-size="16"></span></a></p>
       </div>
     </div>
   </div>
