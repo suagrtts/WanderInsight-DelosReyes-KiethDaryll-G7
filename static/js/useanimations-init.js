@@ -156,9 +156,30 @@
     });
   }
 
+  // Auto-dismiss flash message alerts after 4 seconds with smooth fade-out
+  function initAutoDismissAlerts() {
+    const alerts = document.querySelectorAll(".alert.alert-dismissible");
+    alerts.forEach(function (alertEl) {
+      setTimeout(function () {
+        if (!document.body.contains(alertEl)) return;
+        alertEl.style.transition = "opacity 0.45s ease, transform 0.45s ease";
+        alertEl.style.opacity = "0";
+        alertEl.style.transform = "translateY(-8px)";
+        setTimeout(function () {
+          if (typeof bootstrap !== "undefined" && bootstrap.Alert) {
+            bootstrap.Alert.getOrCreateInstance(alertEl).close();
+          } else if (alertEl.parentNode) {
+            alertEl.parentNode.removeChild(alertEl);
+          }
+        }, 450);
+      }, 4000);
+    });
+  }
+
   function bootUseAnimations() {
     document.querySelectorAll(".ua-icon[data-ua]").forEach(initUseAnimationNode);
     initPasswordVisibilityToggles();
+    initAutoDismissAlerts();
   }
 
   if (document.readyState === "loading") {
