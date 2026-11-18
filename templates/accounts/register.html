@@ -1,12 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Register{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-7">
-    <div class="card auth-card shadow-sm">
-      <div class="card-body p-4 p-md-5">
-        <h1 class="h3 mb-1">Create your account</h1>
-        <p class="text-muted mb-4">Join WanderInsight to explore and manage cultural heritage analytics.</p>
+<div class="row justify-content-center my-lg-3">
+  <div class="col-xl-11">
+    <div class="auth-shell row g-0">
+      <div class="col-lg-5 auth-visual-pane d-flex flex-column justify-content-between">
+        <div id="wi-three-canvas" class="three-canvas-wrap" aria-hidden="true"></div>
+        <div class="auth-visual-overlay">
+          <div>
+            <span class="mono-tag" style="color: var(--wi-gold);">CIT-U · CULTURAL HERITAGE PLATFORM</span>
+            <h2 class="mt-2">Join the Cebu Heritage Registry.</h2>
+            <p class="small text-white-50">Select <strong>Curator</strong> to manage landmark records and visitation logs, or <strong>Viewer</strong> to explore regional analytics dashboards.</p>
+          </div>
+          <div class="border-top border-secondary pt-3 mt-4 small text-white-50">
+            <div class="mb-1"><i class="bi bi-building me-2" style="color: var(--wi-gold);"></i><strong>Curator:</strong> Write access to sites, logs &amp; ratings</div>
+            <div><i class="bi bi-compass me-2" style="color: var(--wi-gold);"></i><strong>Viewer:</strong> Read-only access to visual analytics</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-7 p-4 p-md-5">
+        <span class="mono-tag text-primary">F-01 · Registration</span>
+        <h1 class="h2 mt-1 mb-1">Create your account</h1>
+        <p class="text-muted small mb-4">Join WanderInsight to explore and manage cultural heritage analytics.</p>
         {% if form.non_field_errors %}
           <div class="alert alert-danger">{% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}</div>
         {% endif %}
@@ -16,16 +31,18 @@
             <div class="col-md-6">{% include "partials/field.html" with field=form.first_name %}</div>
             <div class="col-md-6">{% include "partials/field.html" with field=form.last_name %}</div>
           </div>
-          {% include "partials/field.html" with field=form.username %}
-          {% include "partials/field.html" with field=form.email %}
+          <div class="row">
+            <div class="col-md-6">{% include "partials/field.html" with field=form.username %}</div>
+            <div class="col-md-6">{% include "partials/field.html" with field=form.email %}</div>
+          </div>
           {% include "partials/field.html" with field=form.role %}
           <div class="row">
             <div class="col-md-6">{% include "partials/field.html" with field=form.password1 %}</div>
             <div class="col-md-6">{% include "partials/field.html" with field=form.password2 %}</div>
           </div>
-          <button type="submit" class="btn btn-primary w-100">Register</button>
+          <button type="submit" class="btn btn-primary w-100 mt-1">Register Account</button>
         </form>
-        <p class="text-center mt-3 mb-0">Already have an account? <a href="{% url 'accounts:login' %}">Log in</a></p>
+        <p class="text-center mt-3 mb-0 small">Already have an account? <a href="{% url 'accounts:login' %}" class="fw-semibold">Log in</a></p>
       </div>
     </div>
   </div>

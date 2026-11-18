@@ -8,30 +8,39 @@
 {% endblock %}
 {% block content %}
 <div class="dash-hero dash-admin mb-4">
-  <h1 class="h3 mb-1"><i class="bi bi-shield-lock me-2"></i>Administrator Dashboard</h1>
-  <p class="mb-0">Welcome, {{ user.get_full_name|default:user.username }}. Oversee users, roles, and system-wide data operations.</p>
+  <div id="wi-three-canvas" class="three-canvas-wrap" style="opacity:0.45;" aria-hidden="true"></div>
+  <div class="dash-hero-content">
+    <span class="mono-tag" style="color: var(--wi-gold);">ROLE: ADMINISTRATOR · SYSTEM GOVERNANCE</span>
+    <h1 class="mt-1 mb-1"><i class="bi bi-shield-lock me-2"></i>Administrator Dashboard</h1>
+    <p class="mb-0 text-white-50">Welcome, {{ user.get_full_name|default:user.username }}. Oversee users, role permissions (BR-10), and system-wide data operations.</p>
+  </div>
 </div>
+
 <div class="row g-3 mb-4">
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Total Users</div><div class="kpi-value">{{ total_users }}</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Administrators</div><div class="kpi-value">{{ admin_count }}</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Curators</div><div class="kpi-value">{{ curator_count }}</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Viewers</div><div class="kpi-value">{{ viewer_count }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Total Users</div><div class="kpi-value">{{ total_users }}</div><div class="kpi-delta text-muted">Active registry</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Administrators</div><div class="kpi-value">{{ admin_count }}</div><div class="kpi-delta text-muted">Full governance</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Curators</div><div class="kpi-value">{{ curator_count }}</div><div class="kpi-delta text-success">Write access (BR-10)</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Viewers</div><div class="kpi-value">{{ viewer_count }}</div><div class="kpi-delta text-muted">Read-only analytics</div></div></div></div>
 </div>
-<div class="row g-3">
+
+<div class="row g-3 mb-4">
   <div class="col-lg-8">
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white fw-semibold">Recently Registered Users</div>
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Recently Registered Users</span>
+        <a href="{% url 'admin:accounts_user_changelist' %}" class="btn btn-outline-primary btn-sm">Open User Manager</a>
+      </div>
       <div class="table-responsive">
         <table class="table table-hover mb-0 align-middle">
-          <thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
+          <thead class="table-light"><tr><th>Username</th><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
           <tbody>
             {% for u in recent_users %}
             <tr>
-              <td>{{ u.username }}</td>
+              <td class="fw-medium">{{ u.username }}</td>
               <td>{{ u.get_full_name|default:"—" }}</td>
               <td>{{ u.email }}</td>
               <td><span class="badge role-badge role-{{ u.role|lower }}">{{ u.get_role_display }}</span></td>
-              <td>{{ u.date_joined|date:"M j, Y" }}</td>
+              <td class="mono-tag text-muted">{{ u.date_joined|date:"M j, Y" }}</td>
             </tr>
             {% empty %}
             <tr><td colspan="5" class="text-center text-muted">No users yet.</td></tr>
@@ -42,11 +51,11 @@
     </div>
   </div>
   <div class="col-lg-4">
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white fw-semibold">Admin Tools</div>
+    <div class="card h-100">
+      <div class="card-header fw-semibold">Admin Tools &amp; Pipelines</div>
       <div class="list-group list-group-flush">
-        <a href="{% url 'admin:accounts_user_changelist' %}" class="list-group-item list-group-item-action"><i class="bi bi-people me-2"></i>Manage users &amp; roles</a>
-        <span class="list-group-item text-muted"><i class="bi bi-cloud-upload me-2"></i>Batch CSV ingestion <small>(coming soon)</small></span>
+        <a href="{% url 'admin:accounts_user_changelist' %}" class="list-group-item list-group-item-action"><i class="bi bi-people me-2 text-primary"></i>Manage users &amp; roles</a>
+        <span class="list-group-item text-muted"><i class="bi bi-cloud-upload me-2"></i>Batch CSV ingestion (F-07) <small>(coming soon)</small></span>
         <span class="list-group-item text-muted"><i class="bi bi-journal-text me-2"></i>Ingestion audit logs <small>(coming soon)</small></span>
         <span class="list-group-item text-muted"><i class="bi bi-diagram-3 me-2"></i>Districts &amp; categories <small>(coming soon)</small></span>
       </div>
