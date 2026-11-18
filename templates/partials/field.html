@@ -1,0 +1,13 @@
+{# Renders a single form field with label, help text and errors. Usage: include with field=form.x #}
+<div class="mb-3">
+  {% if field.field.widget.input_type != 'checkbox' %}
+  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+  {% endif %}
+  {% if field.errors %}
+    <div class="is-invalid-wrapper">{{ field }}</div>
+    {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+  {% else %}
+    {{ field }}
+  {% endif %}
+  {% if field.help_text %}<div class="form-text">{{ field.help_text|safe }}</div>{% endif %}
+</div>
