@@ -9,14 +9,14 @@
           {% if profile_user.profile_photo %}
             <img src="{{ profile_user.profile_photo.url }}" class="avatar-lg me-3" alt="Profile photo">
           {% else %}
-            <div class="avatar-lg avatar-placeholder me-3"><i class="bi bi-person"></i></div>
+            <div class="avatar-lg avatar-placeholder me-3"><span class="ua-icon" data-ua="user" data-ua-interaction="hover-replay" data-ua-size="42"></span></div>
           {% endif %}
           <div>
             <h1 class="h4 mb-1">{{ profile_user.get_full_name|default:profile_user.username }}</h1>
             <span class="badge role-badge role-{{ profile_user.role|lower }}">{{ profile_user.get_role_display }}</span>
           </div>
           <div class="ms-auto">
-            <a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary btn-sm"><i class="bi bi-pencil me-1"></i>Edit Profile</a>
+            <a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1"><span class="ua-icon" data-ua="edit" data-ua-interaction="hover" data-ua-size="18"></span>Edit Profile</a>
           </div>
         </div>
         <dl class="row mb-0">
@@ -29,7 +29,7 @@
           <dt class="col-sm-4">Last login</dt><dd class="col-sm-8">{{ profile_user.last_login|date:"F j, Y g:i A"|default:"—" }}</dd>
         </dl>
         <hr>
-        <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-key me-1"></i>Change Password</a>
+        <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"><span class="ua-icon" data-ua="key" data-ua-interaction="hover-replay" data-ua-size="18"></span>Change Password</a>
       </div>
     </div>
   </div>
