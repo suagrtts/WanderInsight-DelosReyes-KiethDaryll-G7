@@ -8,19 +8,47 @@
 {% endblock %}
 {% block content %}
 <div class="dash-hero dash-curator mb-4">
-  <h1 class="h3 mb-1"><i class="bi bi-building me-2"></i>Curator Dashboard</h1>
-  <p class="mb-0">Welcome, {{ user.get_full_name|default:user.username }}{% if user.organization %} of {{ user.organization }}{% endif %}. Manage your heritage sites and record visitor activity.</p>
+  <div id="wi-three-canvas" class="three-canvas-wrap" style="opacity:0.45;" aria-hidden="true"></div>
+  <div class="dash-hero-content">
+    <span class="mono-tag" style="color: var(--wi-gold);">ROLE: CURATOR · WRITE ACCESS ENABLED (BR-10)</span>
+    <h1 class="mt-1 mb-1"><i class="bi bi-building me-2"></i>Curator Dashboard</h1>
+    <p class="mb-0 text-white-50">Welcome, {{ user.get_full_name|default:user.username }}{% if user.organization %} of {{ user.organization }}{% endif %}. Manage your heritage sites and record visitor activity.</p>
+  </div>
 </div>
+
 <div class="row g-3 mb-4">
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">My Sites</div><div class="kpi-value">0</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">All-Time Visitors</div><div class="kpi-value">0</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Avg. Rating</div><div class="kpi-value">—</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Logs This Month</div><div class="kpi-value">0</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">My Sites</div><div class="kpi-value">0</div><div class="kpi-delta text-muted">Ready for F-02 CRUD</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">All-Time Visitors</div><div class="kpi-value">0</div><div class="kpi-delta text-success">SQL SUM() metric</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Avg. Rating</div><div class="kpi-value">—</div><div class="kpi-delta text-muted">1–5 scale (BR-05)</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="kpi-label">Logs This Month</div><div class="kpi-value">0</div><div class="kpi-delta text-muted">Daily unique (BR-04)</div></div></div></div>
 </div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold"><i class="bi bi-graph-up me-2 text-primary"></i>Site Visitation Trend Preview (Chart.js · F-05)</span>
+        <span class="mono-tag text-muted">Sample Corridor Series</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-box"><canvas id="wi-visitation-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-semibold"><i class="bi bi-pie-chart me-2 text-primary"></i>Visitor Origin Split (BR-01)</div>
+      <div class="card-body">
+        <div class="chart-box"><canvas id="wi-demographic-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="row g-3">
   <div class="col-md-6">
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white fw-semibold">Quick Actions</div>
+    <div class="card h-100">
+      <div class="card-header fw-semibold">Quick Actions</div>
       <div class="list-group list-group-flush">
         <span class="list-group-item text-muted"><i class="bi bi-plus-circle me-2"></i>Register a heritage site <small>(coming soon)</small></span>
         <span class="list-group-item text-muted"><i class="bi bi-clipboard-data me-2"></i>Submit visitation log <small>(coming soon)</small></span>
@@ -30,8 +58,8 @@
     </div>
   </div>
   <div class="col-md-6">
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white fw-semibold">Your Access</div>
+    <div class="card h-100">
+      <div class="card-header fw-semibold">Your Access</div>
       <div class="card-body">
         <p>As a <strong>Curator</strong> you have <strong>write access</strong> to heritage site records, visitation logs, and visitor ratings (BR-10).</p>
         <a href="{% url 'accounts:profile' %}" class="btn btn-outline-primary btn-sm">View my profile</a>
