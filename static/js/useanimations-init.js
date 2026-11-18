@@ -158,7 +158,7 @@
 
   // Auto-dismiss flash message alerts after 4 seconds with smooth fade-out
   function initAutoDismissAlerts() {
-    const alerts = document.querySelectorAll(".alert.alert-dismissible");
+    const alerts = document.querySelectorAll(".alert.alert-dismissible, ul.messagelist > li");
     alerts.forEach(function (alertEl) {
       setTimeout(function () {
         if (!document.body.contains(alertEl)) return;
@@ -166,7 +166,7 @@
         alertEl.style.opacity = "0";
         alertEl.style.transform = "translateY(-8px)";
         setTimeout(function () {
-          if (typeof bootstrap !== "undefined" && bootstrap.Alert) {
+          if (typeof bootstrap !== "undefined" && bootstrap.Alert && alertEl.classList.contains("alert")) {
             bootstrap.Alert.getOrCreateInstance(alertEl).close();
           } else if (alertEl.parentNode) {
             alertEl.parentNode.removeChild(alertEl);

@@ -7,7 +7,11 @@
  *    Cebu landmark beacons, and interactive click-and-drag 360° orbit rotation.
  */
 (function () {
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const motionMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let reduceMotion = motionMq.matches;
+  motionMq.addEventListener("change", function (e) {
+    reduceMotion = e.matches;
+  });
 
   /* ==========================================================================
    * 1. FULL-VIEWPORT INTERACTIVE 3D BACKGROUND (#wi-bg-canvas)
@@ -24,6 +28,8 @@
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.domElement.setAttribute("role", "img");
+    renderer.domElement.setAttribute("aria-label", "Interactive 3D topographic wave and heritage constellation background");
     host.innerHTML = "";
     host.appendChild(renderer.domElement);
 
@@ -231,6 +237,8 @@
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.domElement.setAttribute("role", "img");
+    renderer.domElement.setAttribute("aria-label", "Interactive 3D Earth globe with Cebu cultural heritage beacons. Drag to rotate.");
     container.innerHTML = "";
     container.appendChild(renderer.domElement);
 

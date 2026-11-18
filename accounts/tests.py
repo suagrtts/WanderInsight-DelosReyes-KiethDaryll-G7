@@ -147,3 +147,40 @@ class ProfileTests(TestCase):
             {"first_name": "A", "last_name": "B", "email": "curator2@example.com"},
         )
         self.assertContains(resp, "An account with this email already exists")
+
+
+class AdminPortalStylingTests(TestCase):
+    def setUp(self):
+        self.admin = make_user("admin_portal", User.Role.ADMIN, is_superuser=True)
+        self.curator = make_user("curator_portal", User.Role.CURATOR)
+        self.viewer = make_user("viewer_portal", User.Role.VIEWER)
+
+    def test_admin_login_renders_heritage_theme_and_3d_globe(self):
+        resp = self.client.get(reverse("admin:login"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "admin-heritage.css")
+        self.assertContains(resp, 'id="wi-three-canvas"')
+        self.assertContains(resp, 'id="wi-bg-canvas"')
+        self.assertContains(resp, 'data-ua="shield"')
+
+    def test_admin_index_renders_kpis_charts_and_3d_globe(self):
+        self.client.force_login(self.admin)
+        resp = self.client.get(reverse("admin:index"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Cultural Heritage Governance Console")
+        self.assertContains(resp, 'id="wi-three-canvas"')
+        self.assertContains(resp, 'id="wi-visitation-chart"')
+        self.assertContains(resp, 'id="wi-admin-role-chart"')
+        self.assertEqual(resp.context["wi_admin_stats"]["total_users"], 3)
+        self.assertEqual(resp.context["wi_admin_stats"]["admin_count"], 1)
+        self.assertEqual(resp.context["wi_admin_stats"]["curator_count"], 1)
+        self.assertEqual(resp.context["wi_admin_stats"]["viewer_count"], 1)
+
+    def test_admin_user_changelist_renders_role_badges(self):
+        self.client.force_login(self.admin)
+        resp = self.client.get(reverse("admin:accounts_user_changelist"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "role-badge role-admin")
+        self.assertContains(resp, "role-badge role-curator")
+        self.assertContains(resp, "role-badge role-viewer")
+

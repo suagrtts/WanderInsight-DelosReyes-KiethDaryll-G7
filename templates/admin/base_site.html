@@ -1,0 +1,87 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('WanderInsight Admin') }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/admin-heritage.css' %}">
+{% endblock %}
+
+{% block branding %}
+<div id="site-name">
+  <a href="{% url 'admin:index' %}">
+    <span class="ua-icon" data-ua="globe" data-ua-interaction="hover-loop" data-ua-size="26" style="color: var(--wi-gold);"></span>
+    <span>WanderInsight</span>
+  </a>
+  <span class="wi-admin-brand-sub">Cebu Heritage · Admin Console</span>
+  <span class="wi-telemetry-pill ua-trigger" title="Move or click anywhere on the background to send a geospatial wave" style="margin-left: 0.5rem;">
+    <span class="ua-icon" data-ua="activity" data-ua-interaction="loop" data-ua-size="16" style="color: #4ADE80;"></span>
+    <span id="wi-coords-live">10.2935°N, 123.9018°E</span>
+  </span>
+</div>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
+
+{% block usertools %}
+{% if has_permission %}
+<div id="user-tools">
+  <span class="badge role-badge role-{{ user.role|default:'admin'|lower }}">
+    {{ user.get_role_display|default:"Administrator" }}
+  </span>
+  <span style="color: rgba(250, 247, 240, 0.85);">
+    {% translate 'Welcome,' %} <strong>{% firstof user.get_short_name user.get_username %}</strong>
+  </span>
+  <a href="{% url 'accounts:dashboard' %}" class="wi-admin-nav-pill">
+    <span class="ua-icon" data-ua="home" data-ua-interaction="hover" data-ua-size="16"></span>
+    <span>{% translate 'App Dashboard' %}</span>
+  </a>
+  <a href="{% url 'accounts:profile' %}" class="wi-admin-nav-pill">
+    <span class="ua-icon" data-ua="user" data-ua-interaction="hover-replay" data-ua-size="16"></span>
+    <span>{% translate 'My Profile' %}</span>
+  </a>
+  {% if user.has_usable_password %}
+  <a href="{% url 'admin:password_change' %}" class="wi-admin-nav-pill">
+    <span class="ua-icon" data-ua="key" data-ua-interaction="hover-replay" data-ua-size="16"></span>
+    <span>{% translate 'Password' %}</span>
+  </a>
+  {% endif %}
+  <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+    {% csrf_token %}
+    <button type="submit">
+      <span class="ua-icon" data-ua="log-out" data-ua-interaction="click-replay" data-ua-size="16"></span>
+      <span>{% translate 'Log out' %}</span>
+    </button>
+  </form>
+  {% include "admin/color_theme_toggle.html" %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block footer %}
+<div class="wi-admin-footer-inner">
+  <span>WanderInsight · Cultural Heritage Governance Console · Animated icons by <a href="https://useanimations.com" target="_blank" rel="noopener">useAnimations</a></span>
+  <div style="display: inline-flex; align-items: center; gap: 0.65rem;">
+    <span class="mono-tag">Click background to pulse wave ·</span>
+    <button id="wi-bg-toggle" type="button" class="button" style="padding: 0.25rem 0.65rem !important; font-size: 0.72rem !important; display: inline-flex; align-items: center; gap: 0.35rem;">
+      <span class="ua-icon" data-ua="play-pause" data-ua-interaction="click-toggle" data-ua-size="15"></span>
+      <span id="wi-bg-toggle-label">Pause 3D</span>
+    </button>
+    <span class="mono-tag">CSIT327 – G7 · CIT-U</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block extrabody %}
+{{ block.super }}
+<div id="wi-bg-canvas" class="wi-bg-canvas" aria-hidden="true"></div>
+<div class="wi-cursor-spotlight" aria-hidden="true"></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lottie-web@5.13.0/build/player/lottie.min.js"></script>
+<script src="{% static 'js/heritage-scene.js' %}"></script>
+<script src="{% static 'js/dashboard-charts.js' %}"></script>
+<script src="{% static 'js/useanimations-init.js' %}"></script>
+{% endblock %}

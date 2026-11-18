@@ -1,0 +1,72 @@
+{% load i18n %}
+
+{% if app_list %}
+  {% for app in app_list %}
+    <div class="app-{{ app.app_label }} module{% if app.app_url in request.path|urlencode %} current-app{% endif %}">
+      <table>
+        <caption>
+          <a href="{{ app.app_url }}" class="section" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            <span class="ua-icon" data-ua="{% if app.app_label == 'accounts' %}users{% else %}shield{% endif %}" data-ua-interaction="hover-replay" data-ua-size="20" style="color: var(--wi-gold);"></span>
+            <span>{{ app.name }}</span>
+          </a>
+        </caption>
+        <thead class="visually-hidden">
+          <tr>
+            <th scope="col">{% translate 'Model name' %}</th>
+            <th scope="col">{% translate 'Add link' %}</th>
+            <th scope="col">{% translate 'Change or view list link' %}</th>
+          </tr>
+        </thead>
+        {% for model in app.models %}
+          {% with model_name=model.object_name|lower %}
+            <tr class="model-{{ model_name }}{% if model.admin_url in request.path|urlencode %} current-model{% endif %}">
+              <th scope="row" id="{{ app.app_label }}-{{ model_name }}">
+                {% if model.admin_url %}
+                  <a href="{{ model.admin_url }}"{% if model.admin_url in request.path|urlencode %} aria-current="page"{% endif %} style="display: inline-flex; align-items: center; gap: 0.45rem; font-weight: 600;">
+                    <span class="ua-icon" data-ua="{% if model_name == 'user' %}user{% else %}layers{% endif %}" data-ua-interaction="hover-replay" data-ua-size="18" style="color: var(--wi-primary);"></span>
+                    <span>{{ model.name }}</span>
+                  </a>
+                {% else %}
+                  {{ model.name }}
+                {% endif %}
+              </th>
+
+              {% if model.add_url %}
+                <td>
+                  <a href="{{ model.add_url }}" class="addlink" aria-describedby="{{ app.app_label }}-{{ model_name }}" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                    <span class="ua-icon" data-ua="plus-circle" data-ua-interaction="click-replay" data-ua-size="16"></span>
+                    <span>{% translate 'Add' %}</span>
+                  </a>
+                </td>
+              {% else %}
+                <td></td>
+              {% endif %}
+
+              {% if model.admin_url and show_changelinks %}
+                {% if model.view_only %}
+                  <td>
+                    <a href="{{ model.admin_url }}" class="viewlink" aria-describedby="{{ app.app_label }}-{{ model_name }}" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                      <span class="ua-icon" data-ua="explore" data-ua-interaction="hover" data-ua-size="16"></span>
+                      <span>{% translate 'View' %}</span>
+                    </a>
+                  </td>
+                {% else %}
+                  <td>
+                    <a href="{{ model.admin_url }}" class="changelink" aria-describedby="{{ app.app_label }}-{{ model_name }}" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                      <span class="ua-icon" data-ua="edit" data-ua-interaction="hover" data-ua-size="16"></span>
+                      <span>{% translate 'Change' %}</span>
+                    </a>
+                  </td>
+                {% endif %}
+              {% elif show_changelinks %}
+                <td></td>
+              {% endif %}
+            </tr>
+          {% endwith %}
+        {% endfor %}
+      </table>
+    </div>
+  {% endfor %}
+{% else %}
+  <p>{% translate 'You don’t have permission to view or edit anything.' %}</p>
+{% endif %}

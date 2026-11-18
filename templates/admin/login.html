@@ -1,0 +1,99 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}{% if form.errors %}{% translate "Error:" %} {% endif %}{{ block.super }}{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin/css/login.css' %}">
+{% csp_nonce_attr form.media %}
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+
+{% block usertools %}{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block content_title %}{% endblock %}
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div class="wi-admin-login-shell">
+  <div class="wi-admin-login-visual">
+    <div style="position: relative; z-index: 3;">
+      <span class="mono-tag" style="color: var(--wi-primary); display: inline-flex; align-items: center; gap: 0.4rem;">
+        <span class="ua-icon" data-ua="shield" data-ua-interaction="hover-replay" data-ua-size="16"></span>
+        <span>SYSTEM GOVERNANCE · BR-10</span>
+      </span>
+      <h2 style="font-size: 2.3rem; line-height: 1.08; margin: 0.45rem 0;">WanderInsight Admin Console.</h2>
+      <p style="color: var(--wi-ink-muted); font-size: 0.92rem; margin: 0;">
+        Authorized staff portal for managing Cebu cultural heritage user roles, curator permissions, and registry records.
+      </p>
+    </div>
+    <div id="wi-three-canvas" class="three-canvas-wrap" title="Drag to rotate 3D Cebu Heritage Earth Globe"></div>
+    <div class="mono-tag" style="position: relative; z-index: 3; color: var(--wi-ink-muted);">
+      <a href="{% url 'accounts:login' %}" style="display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600;">
+        <span>Switch to standard Curator / Viewer Login</span>
+        <span class="ua-icon" data-ua="arrow-up-right" data-ua-interaction="hover-replay" data-ua-size="16"></span>
+      </a>
+    </div>
+  </div>
+
+  <div class="wi-admin-login-card" id="content-main">
+    <div style="margin-bottom: 1.5rem;">
+      <h1 style="font-size: 1.85rem; margin: 0 0 0.25rem 0; display: flex; align-items: center; gap: 0.5rem;">
+        <span class="ua-icon" data-ua="settings" data-ua-interaction="hover" data-ua-size="26" style="color: var(--wi-primary);"></span>
+        <span>Administrator Sign In</span>
+      </h1>
+      <p style="color: var(--wi-ink-muted); font-size: 0.88rem; margin: 0;">
+        Enter your staff or superuser credentials to open the governance console.
+      </p>
+    </div>
+
+    {% if form.errors and not form.non_field_errors %}
+    <p class="errornote">
+      {% blocktranslate count counter=form.errors.items|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktranslate %}
+    </p>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+      {% for error in form.non_field_errors %}
+      <p class="errornote">{{ error }}</p>
+      {% endfor %}
+    {% endif %}
+
+    {% if user.is_authenticated %}
+    <p class="errornote">
+      {% blocktranslate trimmed %}
+        You are authenticated as {{ username }}, but are not authorized to access this page. Would you like to login to a different account?
+      {% endblocktranslate %}
+    </p>
+    {% endif %}
+
+    <form action="{{ app_path }}" method="post" id="login-form">
+      {% csrf_token %}
+      <div class="form-row">
+        {{ form.username.errors }}
+        {{ form.username.label_tag }}
+        {{ form.username }}
+      </div>
+      <div class="form-row">
+        {{ form.password.errors }}
+        {{ form.password.label_tag }}
+        {{ form.password }}
+        <input type="hidden" name="next" value="{{ next }}">
+      </div>
+      {% url 'admin_password_reset' as password_reset_url %}
+      {% if password_reset_url %}
+      <div class="password-reset-link">
+        <a href="{{ password_reset_url }}">{% translate 'Forgotten your login credentials?' %}</a>
+      </div>
+      {% endif %}
+      <div class="submit-row" style="padding: 0.5rem 0 0 0; margin: 0; border: none; background: transparent;">
+        <button type="submit" class="button default" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.7rem 1.25rem !important;">
+          <span class="ua-icon" data-ua="log-in" data-ua-interaction="click-replay" data-ua-size="20"></span>
+          <span>{% translate 'Log in to Admin Console' %}</span>
+          <span class="ua-icon" data-ua="arrow-right" data-ua-interaction="hover-replay" data-ua-size="18"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

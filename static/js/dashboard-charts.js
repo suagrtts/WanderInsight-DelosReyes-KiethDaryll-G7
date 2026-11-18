@@ -81,6 +81,47 @@
         },
       });
     }
+
+    // 3. Admin Role & RBAC Distribution Doughnut (BR-10: Administrators, Curators, Viewers)
+    const roleEl = document.getElementById("wi-admin-role-chart");
+    if (roleEl) {
+      const admins = parseInt(roleEl.dataset.admins || "1", 10);
+      const curators = parseInt(roleEl.dataset.curators || "0", 10);
+      const viewers = parseInt(roleEl.dataset.viewers || "0", 10);
+      const total = admins + curators + viewers;
+      const chartData = total > 0 ? [admins, curators, viewers] : [1, 1, 1];
+
+      new Chart(roleEl, {
+        type: "doughnut",
+        data: {
+          labels: [
+            "Administrators (" + admins + ")",
+            "Curators (" + curators + ")",
+            "Viewers (" + viewers + ")",
+          ],
+          datasets: [
+            {
+              data: chartData,
+              backgroundColor: ["#7F1D1D", "#1E5631", "#1D5C63"],
+              borderWidth: 2,
+              borderColor: "#FFFFFF",
+              hoverOffset: 6,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "64%",
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { padding: 14, usePointStyle: true, pointStyle: "circle" },
+            },
+          },
+        },
+      });
+    }
   }
 
   if (document.readyState === "loading") {

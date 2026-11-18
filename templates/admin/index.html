@@ -1,0 +1,165 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static admin_filters log %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}">{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+<!-- 1. Executive Governance Hero Banner + Standalone Interactive 3D Earth Globe -->
+<section class="wi-admin-hero" aria-label="Administrator Governance Hero">
+  <div class="wi-admin-hero-copy">
+    <span class="wi-admin-hero-eyebrow">
+      <span class="ua-icon" data-ua="shield" data-ua-interaction="hover-replay" data-ua-size="16"></span>
+      <span>ROLE: ADMINISTRATOR · SYSTEM GOVERNANCE (BR-10)</span>
+    </span>
+    <h1>
+      <span class="ua-icon" data-ua="settings" data-ua-interaction="hover" data-ua-size="34" style="color: var(--wi-gold);"></span>
+      <span>Cultural Heritage Governance Console</span>
+    </h1>
+    <p>
+      Oversee user accounts, role-based access permissions, and Cebu cultural heritage telemetry from a unified command surface.
+    </p>
+    <div class="wi-admin-hero-actions">
+      <a href="{% url 'admin:accounts_user_changelist' %}" class="wi-btn-gold">
+        <span class="ua-icon" data-ua="users" data-ua-interaction="hover-replay" data-ua-size="18"></span>
+        <span>Manage Users</span>
+      </a>
+      <a href="{% url 'admin:accounts_user_add' %}" class="wi-btn-ghost">
+        <span class="ua-icon" data-ua="user-plus" data-ua-interaction="hover" data-ua-size="18"></span>
+        <span>Add User Account</span>
+      </a>
+      <a href="{% url 'accounts:admin_dashboard' %}" class="wi-btn-ghost">
+        <span class="ua-icon" data-ua="external-link" data-ua-interaction="hover-replay" data-ua-size="18"></span>
+        <span>Open App Dashboard</span>
+      </a>
+    </div>
+  </div>
+  <div class="wi-admin-globe-stage">
+    <div id="wi-three-canvas" class="three-canvas-wrap" title="Drag to rotate 3D Cebu Heritage Earth Globe"></div>
+  </div>
+</section>
+
+<!-- 2. Live Registry KPI Telemetry Cards (with 3D Tilt & Cursor Spotlight) -->
+<section class="wi-admin-kpi-grid" aria-label="User Registry Metrics">
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <span class="kpi-label">Total Registry Users</span>
+      <span class="ua-icon" data-ua="users" data-ua-interaction="hover-replay" data-ua-size="22" style="color: var(--wi-primary);"></span>
+    </div>
+    <div class="kpi-value">{{ wi_admin_stats.total_users|default:0 }}</div>
+    <div class="kpi-delta">{{ wi_admin_stats.active_count|default:0 }} active accounts</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <span class="kpi-label">Administrators</span>
+      <span class="ua-icon" data-ua="shield" data-ua-interaction="hover-replay" data-ua-size="22" style="color: var(--wi-crimson);"></span>
+    </div>
+    <div class="kpi-value">{{ wi_admin_stats.admin_count|default:0 }}</div>
+    <div class="kpi-delta">Full system governance</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <span class="kpi-label">Curators</span>
+      <span class="ua-icon" data-ua="edit" data-ua-interaction="hover" data-ua-size="22" style="color: var(--wi-forest);"></span>
+    </div>
+    <div class="kpi-value">{{ wi_admin_stats.curator_count|default:0 }}</div>
+    <div class="kpi-delta" style="color: var(--wi-forest);">Write access enabled (BR-10)</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-top">
+      <span class="kpi-label">Viewers</span>
+      <span class="ua-icon" data-ua="explore" data-ua-interaction="hover" data-ua-size="22" style="color: var(--wi-teal);"></span>
+    </div>
+    <div class="kpi-value">{{ wi_admin_stats.viewer_count|default:0 }}</div>
+    <div class="kpi-delta">Public read-only analytics</div>
+  </div>
+</section>
+
+<!-- 3. Interactive Chart.js Analytics Row -->
+<section class="wi-admin-charts-grid" aria-label="Governance Analytics Charts">
+  <div class="wi-chart-card">
+    <div class="wi-chart-header">
+      <span style="display: inline-flex; align-items: center; gap: 0.45rem;">
+        <span class="ua-icon" data-ua="trending-up" data-ua-interaction="hover-replay" data-ua-size="20" style="color: var(--wi-primary);"></span>
+        <span>Cebu Heritage Corridor Visitation Telemetry (Chart.js · F-05)</span>
+      </span>
+      <span class="mono-tag" style="color: var(--wi-ink-muted);">Corridor Baseline</span>
+    </div>
+    <div class="wi-chart-body">
+      <div class="chart-box">
+        <canvas id="wi-visitation-chart" aria-label="Monthly heritage visitation trend line chart"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="wi-chart-card">
+    <div class="wi-chart-header">
+      <span style="display: inline-flex; align-items: center; gap: 0.45rem;">
+        <span class="ua-icon" data-ua="pie-chart" data-ua-interaction="hover-replay" data-ua-size="20" style="color: var(--wi-primary);"></span>
+        <span>Role &amp; RBAC Distribution (BR-10)</span>
+      </span>
+      <span class="mono-tag" style="color: var(--wi-ink-muted);">Live DB Split</span>
+    </div>
+    <div class="wi-chart-body">
+      <div class="chart-box">
+        <canvas
+          id="wi-admin-role-chart"
+          data-admins="{{ wi_admin_stats.admin_count|default:1 }}"
+          data-curators="{{ wi_admin_stats.curator_count|default:0 }}"
+          data-viewers="{{ wi_admin_stats.viewer_count|default:0 }}"
+          aria-label="User role distribution doughnut chart"
+        ></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Application Modules & Recent Administrative Actions -->
+<div class="wi-admin-workspace-grid">
+  <div id="content-main" class="app-list">
+    {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+  </div>
+  <div id="content-related">
+    <div class="module" id="recent-actions-module">
+      <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+        <span class="ua-icon" data-ua="activity" data-ua-interaction="loop" data-ua-size="20" style="color: var(--wi-gold);"></span>
+        <span>{% translate 'Recent Governance Actions' %}</span>
+      </h2>
+      <div style="padding: 1rem 1.25rem;">
+        <h3 class="mono-tag" style="margin-top: 0; color: var(--wi-ink-muted);">{% translate 'My Audit Trail' %}</h3>
+        {% get_admin_log 8 as admin_log for_user user %}
+        {% if not admin_log %}
+          <p style="color: var(--wi-ink-muted); margin-bottom: 0;">{% translate 'No administrative actions recorded yet.' %}</p>
+        {% else %}
+          <ul class="actionlist" style="margin: 0; padding-left: 1.1rem;">
+            {% for entry in admin_log %}
+            <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}" style="margin-bottom: 0.65rem;">
+              <span class="visually-hidden">{% if entry.is_addition %}{% translate 'Added:' %}{% elif entry.is_change %}{% translate 'Changed:' %}{% elif entry.is_deletion %}{% translate 'Deleted:' %}{% endif %}</span>
+              {% if entry.is_deletion or not entry.get_admin_url %}
+                <strong>{{ entry.object_repr|to_object_display_value }}</strong>
+              {% else %}
+                <a href="{{ entry.get_admin_url }}" style="font-weight: 600;">{{ entry.object_repr|to_object_display_value }}</a>
+              {% endif %}
+              <br>
+              {% if entry.content_type %}
+                <span class="mini quiet mono-tag">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+              {% else %}
+                <span class="mini quiet mono-tag">{% translate 'Unknown content' %}</span>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}
