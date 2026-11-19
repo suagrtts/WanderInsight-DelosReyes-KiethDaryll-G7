@@ -30,8 +30,7 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.domElement.setAttribute("role", "img");
     renderer.domElement.setAttribute("aria-label", "Interactive 3D topographic wave and heritage constellation background");
-    host.innerHTML = "";
-    host.appendChild(renderer.domElement);
+    host.replaceChildren(renderer.domElement);
 
     const world = new THREE.Group();
     scene.add(world);
@@ -239,8 +238,7 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.domElement.setAttribute("role", "img");
     renderer.domElement.setAttribute("aria-label", "Interactive 3D Earth globe with Cebu cultural heritage beacons. Drag to rotate.");
-    container.innerHTML = "";
-    container.appendChild(renderer.domElement);
+    container.replaceChildren(renderer.domElement);
 
     const root = new THREE.Group();
     scene.add(root);
