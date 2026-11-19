@@ -156,13 +156,13 @@
     });
   }
 
-  // Auto-dismiss flash message alerts after 4 seconds with smooth fade-out
+  // Auto-dismiss flash message alerts after 4 seconds with snappy fade-out (<300ms)
   function initAutoDismissAlerts() {
     const alerts = document.querySelectorAll(".alert.alert-dismissible, ul.messagelist > li");
     alerts.forEach(function (alertEl) {
       setTimeout(function () {
         if (!document.body.contains(alertEl)) return;
-        alertEl.style.transition = "opacity 0.45s ease, transform 0.45s ease";
+        alertEl.style.transition = "opacity 220ms ease, transform 220ms ease";
         alertEl.style.opacity = "0";
         alertEl.style.transform = "translateY(-8px)";
         setTimeout(function () {
@@ -171,8 +171,30 @@
           } else if (alertEl.parentNode) {
             alertEl.parentNode.removeChild(alertEl);
           }
-        }, 450);
+        }, 220);
       }, 4000);
+    });
+  }
+
+  // Immediate loading state feedback on form submission (Doherty Threshold + Web Design Guidelines)
+  function initFormSubmitLoading() {
+    document.querySelectorAll("form").forEach(function (form) {
+      if (form.dataset.wiSubmitReady === "1") return;
+      form.dataset.wiSubmitReady = "1";
+      form.addEventListener("submit", function () {
+        const btn = form.querySelector('button[type="submit"], input[type="submit"]');
+        if (!btn || btn.disabled) return;
+        btn.setAttribute("aria-busy", "true");
+        btn.disabled = true;
+        if (btn.tagName === "BUTTON") {
+          const textSpan = btn.querySelector("span:not(.ua-icon)");
+          if (textSpan) {
+            textSpan.textContent = "Working\u2026";
+          } else {
+            btn.textContent = "Working\u2026";
+          }
+        }
+      });
     });
   }
 
@@ -180,6 +202,7 @@
     document.querySelectorAll(".ua-icon[data-ua]").forEach(initUseAnimationNode);
     initPasswordVisibilityToggles();
     initAutoDismissAlerts();
+    initFormSubmitLoading();
   }
 
   if (document.readyState === "loading") {

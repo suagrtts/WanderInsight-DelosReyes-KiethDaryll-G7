@@ -12,7 +12,7 @@
   <div class="dash-hero-content">
     <span class="mono-tag d-inline-flex align-items-center gap-1" style="color: var(--wi-gold);"><span class="ua-icon" data-ua="edit" data-ua-interaction="hover" data-ua-size="16"></span>ROLE: CURATOR · WRITE ACCESS ENABLED (BR-10)</span>
     <h1 class="mt-1 mb-1 d-flex align-items-center gap-2"><span class="ua-icon" data-ua="award" data-ua-interaction="hover-replay" data-ua-size="34" style="color: var(--wi-gold);"></span>Curator Dashboard</h1>
-    <p class="mb-0 text-white-50">Welcome, {{ user.get_full_name|default:user.username }}{% if user.organization %} of {{ user.organization }}{% endif %}. Manage your heritage sites and record visitor activity.</p>
+    <p class="mb-0 dash-hero-subtitle">Welcome, {{ user.get_full_name|default:user.username }}{% if user.organization %} of {{ user.organization }}{% endif %}. Manage your heritage sites and record visitor activity.</p>
   </div>
 </div>
 

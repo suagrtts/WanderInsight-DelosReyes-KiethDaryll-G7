@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
   --wi-bg: #F6F3EC;
@@ -6,21 +6,29 @@
   --wi-surface-subtle: #EFEAE0;
   --wi-ink: #161412;
   --wi-ink-muted: #5C554E;
-  --wi-border: rgba(222, 214, 198, 0.9);
+  --wi-border: rgb(22 20 18 / 0.12);
+  --wi-border-strong: rgb(22 20 18 / 0.2);
   --wi-primary: #8C3B1A;
   --wi-primary-hover: #6E2D12;
   --wi-gold: #C8922E;
   --wi-teal: #1D5C63;
   --wi-forest: #1E5631;
   --wi-crimson: #7F1D1D;
+  --wi-radius-card: 16px;
+  --wi-radius-inner: 8px;
+  --wi-duration-snap: 150ms;
+  --wi-duration-flow: 220ms;
+  --wi-ease-ui: cubic-bezier(0.22, 1, 0.36, 1);
   --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --cursor-x: 50vw;
   --cursor-y: 35vh;
 }
 
 body {
+  min-height: 100vh;
+  min-height: 100dvh;
   background-color: var(--wi-bg);
   background-image:
     radial-gradient(circle at 15% 15%, rgba(200, 146, 46, 0.11), transparent 42%),
@@ -30,6 +38,47 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+
+.min-vh-100 {
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+}
+
+/* Skip link & visible keyboard focus rings (Web Design Guidelines) */
+.wi-skip-link {
+  position: fixed;
+  top: -100px;
+  left: 1rem;
+  z-index: 2000;
+  padding: 0.75rem 1.25rem;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  background: var(--wi-primary);
+  color: #FFFFFF !important;
+  border-radius: var(--wi-radius-inner);
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgb(22 20 18 / 0.25);
+  transition: top var(--wi-duration-snap) var(--wi-ease-ui);
+}
+.wi-skip-link:focus-visible {
+  top: 0.75rem;
+  outline: 2px solid var(--wi-gold);
+  outline-offset: 2px;
+}
+
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+.nav-link:focus-visible,
+.list-group-item-action:focus-visible {
+  outline: 2px solid var(--wi-primary);
+  outline-offset: 2px;
+}
+.wi-navbar a:focus-visible,
+.wi-navbar button:focus-visible {
+  outline-color: var(--wi-gold);
 }
 
 /* Full-Viewport Interactive 3D Background Canvas & Cursor Spotlight */
@@ -87,6 +136,18 @@ h1, h2, h3, .serif-heading {
   font-weight: 700;
   letter-spacing: -0.015em;
   color: var(--wi-ink);
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+#wi-coords-live,
+.kpi-value,
+.kpi-delta,
+table td {
+  font-variant-numeric: tabular-nums;
 }
 
 .mono-tag {
@@ -123,17 +184,38 @@ h1, h2, h3, .serif-heading {
   border-radius: 3px;
 }
 .wi-navbar .nav-link {
-  color: rgba(250, 247, 240, 0.78) !important;
+  color: rgba(250, 247, 240, 0.84) !important;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: color 0.2s ease;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  transition: color var(--wi-duration-snap) ease;
 }
 .wi-navbar .nav-link:hover,
 .wi-navbar .nav-link.active {
   color: #FFFFFF !important;
 }
 
-/* Buttons & Links */
+/* Buttons & Links (Fitts's Law >= 44px hit areas + tactile press feedback) */
+.btn,
+.btn-sm,
+.navbar-toggler,
+.list-group-item-action {
+  min-height: 44px;
+}
+.navbar-toggler {
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.9rem;
+}
 .btn-primary {
   --bs-btn-bg: var(--wi-primary);
   --bs-btn-border-color: var(--wi-primary);
@@ -142,12 +224,15 @@ h1, h2, h3, .serif-heading {
   --bs-btn-active-bg: var(--wi-primary-hover);
   font-weight: 500;
   padding: 0.6rem 1.25rem;
-  border-radius: 0.5rem;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+  border-radius: var(--wi-radius-inner);
+  transition: transform var(--wi-duration-snap) var(--wi-ease-ui), box-shadow var(--wi-duration-snap) ease, background-color var(--wi-duration-snap) ease;
 }
 .btn-primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(140, 59, 26, 0.25);
+}
+.btn:active {
+  transform: scale(0.98);
 }
 .btn-outline-primary {
   --bs-btn-color: var(--wi-primary);
@@ -155,7 +240,8 @@ h1, h2, h3, .serif-heading {
   --bs-btn-hover-bg: var(--wi-primary);
   --bs-btn-hover-border-color: var(--wi-primary);
   font-weight: 500;
-  border-radius: 0.5rem;
+  border-radius: var(--wi-radius-inner);
+  transition: transform var(--wi-duration-snap) var(--wi-ease-ui), background-color var(--wi-duration-snap) ease, color var(--wi-duration-snap) ease;
 }
 .text-primary { color: var(--wi-primary) !important; }
 a { color: var(--wi-primary); text-decoration: none; }
@@ -337,10 +423,20 @@ a:hover { color: var(--wi-primary-hover); text-decoration: underline; }
   box-shadow: 0 12px 28px rgba(22, 20, 18, 0.12);
 }
 .dash-hero h1 { color: #FAF7F0; font-size: 2.15rem; }
+.dash-hero-subtitle { color: rgba(250, 247, 240, 0.88); max-width: 65ch; }
 .dash-hero-content { position: relative; z-index: 2; }
-.dash-admin { background: linear-gradient(125deg, #231214 0%, #5C161E 60%, #7F1D1D 100%); }
-.dash-curator { background: linear-gradient(125deg, #102419 0%, #1B432C 60%, #245C3B 100%); }
-.dash-viewer { background: linear-gradient(125deg, #102226 0%, #17464F 60%, #1D5C63 100%); }
+.dash-admin {
+  background: linear-gradient(125deg, #231214 0%, #5C161E 60%, #7F1D1D 100%);
+  background: linear-gradient(125deg in oklch, #231214 0%, #5C161E 60%, #7F1D1D 100%);
+}
+.dash-curator {
+  background: linear-gradient(125deg, #102419 0%, #1B432C 60%, #245C3B 100%);
+  background: linear-gradient(125deg in oklch, #102419 0%, #1B432C 60%, #245C3B 100%);
+}
+.dash-viewer {
+  background: linear-gradient(125deg, #102226 0%, #17464F 60%, #1D5C63 100%);
+  background: linear-gradient(125deg in oklch, #102226 0%, #17464F 60%, #1D5C63 100%);
+}
 
 /* KPI Cards */
 .kpi-card {
@@ -400,12 +496,14 @@ a:hover { color: var(--wi-primary-hover); text-decoration: underline; }
   fill: currentColor !important;
 }
 
-/* Password Visibility Toggle Button (useAnimations visibility-v2) */
+/* Password Visibility Toggle Button (useAnimations visibility-v2, >=44x44px hit area) */
 .ua-pwd-btn {
   position: absolute;
-  right: 0.55rem;
+  right: 0.2rem;
   top: 50%;
   transform: translateY(-50%);
+  min-width: 44px;
+  min-height: 44px;
   background: transparent;
   border: none;
   color: var(--wi-ink-muted);
@@ -414,23 +512,31 @@ a:hover { color: var(--wi-primary-hover); text-decoration: underline; }
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: 0.35rem;
-  transition: color 0.15s ease, background-color 0.15s ease;
+  border-radius: var(--wi-radius-inner);
+  transition: color var(--wi-duration-snap) ease, background-color var(--wi-duration-snap) ease;
 }
 .ua-pwd-btn:hover,
 .ua-pwd-btn:focus-visible {
   color: var(--wi-primary);
   background: rgba(140, 59, 26, 0.08);
-  outline: none;
 }
 
-/* Entrance animation respecting reduced motion */
+/* Entrance & exaggerated error feedback respecting reduced motion (<300ms snappy timing) */
 @media (prefers-reduced-motion: no-preference) {
   [data-enter] {
-    animation: wiFadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: wiFadeUp var(--wi-duration-flow) var(--wi-ease-ui) both;
   }
   @keyframes wiFadeUp {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+  .alert-danger {
+    animation: wiErrorShake 260ms var(--wi-ease-ui);
+  }
+  @keyframes wiErrorShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    45% { transform: translateX(4px); }
+    70% { transform: translateX(-3px); }
   }
 }
