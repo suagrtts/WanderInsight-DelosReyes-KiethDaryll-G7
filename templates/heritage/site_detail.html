@@ -79,6 +79,12 @@
         <span class="ua-icon text-primary" data-ua="file-text" data-ua-interaction="hover-replay" data-ua-size="20"></span>Historical Overview &amp; Conservation Notes
       </div>
       <div class="card-body">
+        {% if site.resolved_image_url %}
+        <figure class="wi-landmark-photo-wrap mb-4">
+          <img src="{{ site.resolved_image_url }}" alt="Photograph of {{ site.name }} in {{ site.municipality }}" class="wi-landmark-photo" loading="eager">
+          <figcaption class="wi-landmark-caption">{{ site.name }} · {{ site.municipality }}, {{ site.district.name }}</figcaption>
+        </figure>
+        {% endif %}
         <p class="mb-4" style="white-space: pre-line;">{{ site.historical_overview }}</p>
 
         <h2 class="h6 text-uppercase mono-tag text-muted mb-2">Conservation Designations &amp; Visitor Attributes</h2>

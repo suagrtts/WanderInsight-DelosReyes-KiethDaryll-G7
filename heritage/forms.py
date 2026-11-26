@@ -52,6 +52,8 @@ class HeritageSiteForm(HeritageFormMixin, forms.ModelForm):
             "entry_fee",
             "custodian_organization",
             "preservation_tags",
+            "cover_image",
+            "image_url",
             "historical_overview",
             "is_published",
         )
@@ -65,6 +67,10 @@ class HeritageSiteForm(HeritageFormMixin, forms.ModelForm):
             "entry_fee": forms.NumberInput(attrs={"step": "0.01", "min": "0.00"}),
             "custodian_organization": forms.TextInput(
                 attrs={"placeholder": "e.g., Order of Saint Augustine / Cebu City Heritage Office"}
+            ),
+            "cover_image": forms.ClearableFileInput(),
+            "image_url": forms.URLInput(
+                attrs={"placeholder": "https://upload.wikimedia.org/..."}
             ),
             "historical_overview": forms.Textarea(
                 attrs={
@@ -124,6 +130,16 @@ class HeritageSiteForm(HeritageFormMixin, forms.ModelForm):
         if fee is not None and fee < Decimal("0.00"):
             raise forms.ValidationError("Admission fee cannot be negative.")
         return fee
+
+    def clean_cover_image(self):
+        photo = self.cleaned_data.get("cover_image")
+        if photo and hasattr(photo, "size"):
+            if photo.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("Landmark photograph must be 5 MB or smaller.")
+            content_type = getattr(photo, "content_type", None)
+            if content_type and content_type not in {"image/jpeg", "image/png", "image/webp"}:
+                raise forms.ValidationError("Upload a valid JPEG, PNG, or WebP photograph.")
+        return photo
 
     def clean_historical_overview(self):
         overview = (self.cleaned_data.get("historical_overview") or "").strip()

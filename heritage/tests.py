@@ -465,3 +465,29 @@ class VisitationLogVerticalSliceTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "No visitation logs recorded for your landmarks yet")
         self.assertNotContains(resp, "Sample Baseline")
+
+
+    def test_avg_daily_is_atomic_integer_and_image_url_resolves(self):
+        for offset, total in [(1, 100), (2, 100), (3, 102)]:
+            VisitationLog.objects.create(
+                site=self.site_a,
+                recorded_by=self.curator_a,
+                visit_date=self.today - timedelta(days=offset),
+                local_visitors=total,
+                domestic_visitors=0,
+                foreign_visitors=0,
+                total_visitors=total,
+            )
+        self.client.login(username="curator_ana", password="StrongPassword123!")
+        resp = self.client.get(reverse("heritage:site_detail", args=[self.site_a.slug]))
+        self.assertEqual(resp.status_code, 200)
+        avg_val = resp.context["analytics"]["avg_daily"]
+        self.assertIsInstance(avg_val, int)
+        self.assertEqual(avg_val, 101)  # 302 / 3 = 100.667 -> 101 (whole person)
+
+        self.site_a.image_url = "https://upload.wikimedia.org/wikipedia/commons/sample.jpg"
+        self.site_a.save()
+        self.assertEqual(
+            self.site_a.resolved_image_url,
+            "https://upload.wikimedia.org/wikipedia/commons/sample.jpg",
+        )
