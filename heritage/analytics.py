@@ -50,7 +50,7 @@ def build_visitation_analytics(logs_qs):
         "local_pct": local_pct,
         "domestic_pct": dom_pct,
         "foreign_pct": for_pct,
-        "avg_daily": round(float(totals["avg_daily"] or 0), 1) if totals["log_count"] else 0,
+        "avg_daily": int(round(float(totals["avg_daily"] or 0))) if totals["log_count"] else 0,
         "log_count": int(totals["log_count"] or 0),
         "has_chart_data": bool(trend_labels),
         "trend_labels_json": json.dumps(trend_labels),

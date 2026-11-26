@@ -129,7 +129,7 @@ def site_detail(request, slug):
 def site_create(request):
     """Register a new Heritage Site linked to the authenticated Curator/Admin."""
     if request.method == "POST":
-        form = HeritageSiteForm(request.POST)
+        form = HeritageSiteForm(request.POST, request.FILES)
         if form.is_valid():
             site = form.save(commit=False)
             site.created_by = request.user
@@ -163,7 +163,7 @@ def site_update(request, slug):
         return redirect("heritage:site_detail", slug=site.slug)
 
     if request.method == "POST":
-        form = HeritageSiteForm(request.POST, instance=site)
+        form = HeritageSiteForm(request.POST, request.FILES, instance=site)
         if form.is_valid():
             updated_site = form.save()
             messages.success(request, f'Changes to "{updated_site.name}" have been saved.')
