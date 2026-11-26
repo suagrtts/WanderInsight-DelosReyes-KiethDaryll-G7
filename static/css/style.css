@@ -721,3 +721,57 @@ a:hover { color: var(--wi-primary-hover); text-decoration: underline; }
   color: #FAF7F0;
   border-color: rgba(255, 255, 255, 0.35);
 }
+
+/* Heritage Landmark Photography & Thumbnails */
+.wi-landmark-photo-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(var(--wi-radius-card) - 6px);
+  border: 1px solid var(--wi-border);
+  background: var(--wi-surface-subtle);
+  margin: 0;
+}
+.wi-landmark-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  transition: transform var(--wi-duration-flow) var(--wi-ease-ui);
+}
+.wi-landmark-photo-wrap:hover .wi-landmark-photo {
+  transform: scale(1.02);
+}
+.wi-landmark-caption {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--wi-ink-muted);
+  padding: 0.5rem 0.85rem;
+  background: rgba(246, 243, 236, 0.92);
+  border-top: 1px solid var(--wi-border);
+}
+.wi-landmark-thumb {
+  width: 60px;
+  height: 44px;
+  border-radius: 7px;
+  object-fit: cover;
+  border: 1px solid var(--wi-border);
+  flex-shrink: 0;
+  background: var(--wi-surface-subtle);
+}
+.wi-landmark-thumb-sm {
+  width: 48px;
+  height: 36px;
+  border-radius: 6px;
+}
+.wi-landmark-thumb-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wi-ink-muted);
+  font-size: 1.1rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wi-landmark-photo-wrap:hover .wi-landmark-photo {
+    transform: none;
+  }
+}

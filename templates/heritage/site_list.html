@@ -132,11 +132,20 @@
         {% for site in sites %}
         <tr>
           <th scope="row" class="fw-semibold">
-            <a href="{% url 'heritage:site_detail' site.slug %}" class="wi-site-link">{{ site.name }}</a>
-            {% if not site.is_published %}
-              <span class="badge text-bg-secondary ms-1 mono-tag">Draft</span>
-            {% endif %}
-            <div class="small text-muted fw-normal mono-tag mt-1">{{ site.latitude }}°N, {{ site.longitude }}°E</div>
+            <div class="d-flex align-items-center gap-3">
+              {% if site.resolved_image_url %}
+                <img src="{{ site.resolved_image_url }}" alt="{{ site.name }}" class="wi-landmark-thumb" loading="lazy">
+              {% else %}
+                <span class="wi-landmark-thumb wi-landmark-thumb-empty" aria-hidden="true"><i class="bi bi-bank"></i></span>
+              {% endif %}
+              <div>
+                <a href="{% url 'heritage:site_detail' site.slug %}" class="wi-site-link">{{ site.name }}</a>
+                {% if not site.is_published %}
+                  <span class="badge text-bg-secondary ms-1 mono-tag">Draft</span>
+                {% endif %}
+                <div class="small text-muted fw-normal mono-tag mt-1">{{ site.latitude }}°N, {{ site.longitude }}°E</div>
+              </div>
+            </div>
           </th>
           <td>
             <div class="fw-medium">{{ site.district.name }}</div>
