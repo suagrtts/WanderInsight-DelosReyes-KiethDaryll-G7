@@ -32,12 +32,19 @@
     <div class="card h-100">
       <div class="card-header d-flex justify-content-between align-items-center">
         <span class="fw-semibold d-inline-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="trending-up" data-ua-interaction="hover-replay" data-ua-size="20"></span>My Landmarks Visitation Trend (F-05)</span>
-        <span class="mono-tag text-muted">{% if analytics.has_chart_data %}Live PostgreSQL Series{% else %}Sample Baseline{% endif %}</span>
+        <span class="mono-tag text-muted">{% if analytics.has_chart_data %}Live PostgreSQL Series{% else %}No Logs Yet{% endif %}</span>
       </div>
       <div class="card-body">
+        {% if analytics.has_chart_data %}
         <div class="chart-box">
           <canvas id="wi-visitation-chart" data-labels='{{ analytics.trend_labels_json }}' data-values='{{ analytics.trend_values_json }}'></canvas>
         </div>
+        {% else %}
+        <div class="chart-box d-flex flex-column justify-content-center align-items-center text-center text-muted px-3">
+          <p class="mb-2">No visitation logs recorded for your landmarks yet.</p>
+          <a href="{% url 'heritage:log_create' %}" class="btn btn-outline-primary btn-sm">Record First Visitation Log</a>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -45,9 +52,15 @@
     <div class="card h-100">
       <div class="card-header fw-semibold d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="pie-chart" data-ua-interaction="hover-replay" data-ua-size="20"></span>Visitor Origin Split (BR-01)</div>
       <div class="card-body">
+        {% if analytics.total_visitors > 0 %}
         <div class="chart-box">
           <canvas id="wi-demographic-chart" data-origin-values='{{ analytics.origin_values_json }}'></canvas>
         </div>
+        {% else %}
+        <div class="chart-box d-flex justify-content-center align-items-center text-center text-muted px-3">
+          <p class="mb-0 small">Demographic origin breakdown will appear after your first recorded log.</p>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>

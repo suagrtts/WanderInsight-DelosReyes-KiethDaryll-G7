@@ -402,3 +402,66 @@ class VisitationLogVerticalSliceTests(TestCase):
         call_command("seed_heritage_data")
         self.assertGreaterEqual(HeritageSite.objects.count(), 6)
         self.assertGreaterEqual(VisitationLog.objects.count(), 36)
+
+
+    def test_log_list_handles_malformed_and_inverted_date_filters_gracefully(self):
+        self.client.login(username="curator_ana", password="StrongPassword123!")
+        resp_bad = self.client.get(reverse("heritage:log_list") + "?date_from=notadate&date_to=99-99-99")
+        self.assertEqual(resp_bad.status_code, 200)
+        self.assertContains(resp_bad, "Invalid")
+
+        resp_inv = self.client.get(reverse("heritage:log_list") + "?date_from=2026-12-01&date_to=2026-01-01")
+        self.assertEqual(resp_inv.status_code, 200)
+        self.assertContains(resp_inv, "Start date cannot be later than end date")
+
+    def test_visitation_log_rejects_unrealistically_old_visit_date(self):
+        self.client.login(username="curator_ana", password="StrongPassword123!")
+        resp = self.client.post(
+            reverse("heritage:log_create"),
+            {
+                "site": self.site_a.id,
+                "visit_date": "1800-01-01",
+                "local_visitors": 10,
+                "domestic_visitors": 0,
+                "foreign_visitors": 0,
+                "total_visitors": 10,
+                "weather_condition": VisitationLog.WeatherCondition.SUNNY,
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "cannot be earlier than")
+        self.assertEqual(VisitationLog.objects.count(), 0)
+
+    def test_log_update_emits_capacity_warning(self):
+        log = VisitationLog.objects.create(
+            site=self.site_a,
+            recorded_by=self.curator_a,
+            visit_date=self.today,
+            local_visitors=100,
+            domestic_visitors=0,
+            foreign_visitors=0,
+            total_visitors=100,
+        )
+        self.client.login(username="curator_ana", password="StrongPassword123!")
+        resp = self.client.post(
+            reverse("heritage:log_update", args=[log.pk]),
+            {
+                "site": self.site_a.id,
+                "visit_date": self.today.isoformat(),
+                "local_visitors": 4000,
+                "domestic_visitors": 0,
+                "foreign_visitors": 0,
+                "total_visitors": 4000,
+                "weather_condition": VisitationLog.WeatherCondition.SUNNY,
+            },
+            follow=True,
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "exceeding")
+
+    def test_curator_dashboard_shows_empty_state_when_zero_logs(self):
+        self.client.login(username="curator_ana", password="StrongPassword123!")
+        resp = self.client.get(reverse("accounts:curator_dashboard"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "No visitation logs recorded for your landmarks yet")
+        self.assertNotContains(resp, "Sample Baseline")

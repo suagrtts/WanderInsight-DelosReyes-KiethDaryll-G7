@@ -78,3 +78,15 @@ class ProfileForm(StyledFormMixin, forms.ModelForm):
         if User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError("An account with this email already exists.")
         return email
+
+    def clean_profile_photo(self):
+        photo = self.cleaned_data.get("profile_photo")
+        if photo and hasattr(photo, "size"):
+            max_bytes = 2 * 1024 * 1024  # 2 MB
+            if photo.size > max_bytes:
+                raise forms.ValidationError("Profile photo must be 2 MB or smaller.")
+            content_type = getattr(photo, "content_type", None)
+            allowed_types = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+            if content_type and content_type not in allowed_types:
+                raise forms.ValidationError("Upload a valid JPEG, PNG, WebP, or GIF image.")
+        return photo
