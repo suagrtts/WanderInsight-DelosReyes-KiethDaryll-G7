@@ -29,7 +29,7 @@
         <ul class="navbar-nav me-auto ms-lg-3">
           {% if user.is_authenticated %}
             {% block role_nav %}
-            <li class="nav-item"><a class="nav-link d-inline-flex align-items-center gap-1" href="{% url 'accounts:dashboard' %}"><span class="ua-icon" data-ua="home" data-ua-interaction="hover" data-ua-size="18"></span>Dashboard</a></li>
+            {% include "partials/role_nav.html" %}
             {% endblock %}
           {% endif %}
         </ul>
