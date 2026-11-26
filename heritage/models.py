@@ -1,5 +1,7 @@
 from decimal import Decimal
+import json
 from pathlib import Path
+import random
 
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -182,18 +184,40 @@ class HeritageSite(models.Model):
         super().save(*args, **kwargs)
 
     @property
-    def resolved_image_url(self):
-        """Return uploaded photo, external image URL, or bundled Wikimedia Commons static photo."""
+    def gallery_image_urls(self):
+        """Return all available photograph URLs for this landmark (uploaded, external, and bundled gallery)."""
+        urls = []
         if self.cover_image:
-            return self.cover_image.url
-        if self.image_url:
-            return self.image_url
+            urls.append(self.cover_image.url)
+        if self.image_url and self.image_url not in urls:
+            urls.append(self.image_url)
         if self.slug:
-            bundled = Path(settings.BASE_DIR) / "static" / "images" / "heritage" / f"{self.slug}.jpg"
-            if bundled.exists():
-                static_prefix = settings.STATIC_URL if settings.STATIC_URL.startswith("/") else f"/{settings.STATIC_URL}"
-                return f"{static_prefix}images/heritage/{self.slug}.jpg"
-        return ""
+            img_dir = Path(settings.BASE_DIR) / "static" / "images" / "heritage"
+            static_prefix = (
+                settings.STATIC_URL if settings.STATIC_URL.startswith("/") else f"/{settings.STATIC_URL}"
+            )
+            primary = img_dir / f"{self.slug}.jpg"
+            if primary.exists():
+                urls.append(f"{static_prefix}images/heritage/{primary.name}")
+            if img_dir.exists():
+                extras = sorted(img_dir.glob(f"{self.slug}-*.jpg"))
+                for extra in extras:
+                    url = f"{static_prefix}images/heritage/{extra.name}"
+                    if url not in urls:
+                        urls.append(url)
+        return urls
+
+    @property
+    def gallery_image_urls_json(self):
+        return json.dumps(self.gallery_image_urls)
+
+    @property
+    def resolved_image_url(self):
+        """Return a photo URL from the landmark gallery (rotates across page loads)."""
+        urls = self.gallery_image_urls
+        if not urls:
+            return ""
+        return random.choice(urls)
 
     def can_manage(self, user):
         """Only the Curator who created the site or an Administrator may edit/delete it (BR-10)."""
