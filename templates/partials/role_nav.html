@@ -7,7 +7,7 @@
 {% if user.is_admin_role %}
 <li class="nav-item">
   <a class="nav-link {% if ns == 'heritage' and cur in 'site_list,site_detail,site_create,site_update,site_delete' %}active{% endif %} d-inline-flex align-items-center gap-1" href="{% url 'heritage:site_list' %}">
-    <span class="ua-icon" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="18"></span>Heritage Registry
+    <span class="ua-icon" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="18"></span>Heritage Sites
   </a>
 </li>
 <li class="nav-item">
@@ -17,12 +17,12 @@
 </li>
 <li class="nav-item">
   <a class="nav-link {% if ns == 'heritage' and cur == 'taxonomy_manage' %}active{% endif %} d-inline-flex align-items-center gap-1" href="{% url 'heritage:taxonomy_manage' %}">
-    <span class="ua-icon" data-ua="layers" data-ua-interaction="hover-replay" data-ua-size="18"></span>Districts &amp; Categories
+    <span class="ua-icon" data-ua="layers" data-ua-interaction="hover-replay" data-ua-size="18"></span>Taxonomy
   </a>
 </li>
 <li class="nav-item">
   <a class="nav-link d-inline-flex align-items-center gap-1" href="{% url 'admin:accounts_user_changelist' %}">
-    <span class="ua-icon" data-ua="users" data-ua-interaction="hover-replay" data-ua-size="18"></span>Manage Users
+    <span class="ua-icon" data-ua="users" data-ua-interaction="hover-replay" data-ua-size="18"></span>Users
   </a>
 </li>
 {% elif user.is_curator %}
