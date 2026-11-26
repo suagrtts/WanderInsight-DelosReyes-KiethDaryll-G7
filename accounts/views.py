@@ -1,11 +1,16 @@
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.views import LoginView
+from django.db.models import Count, Sum
+from django.db.models.functions import Coalesce
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
+
+from heritage.analytics import build_visitation_analytics
+from heritage.models import District, HeritageSite, VisitationLog
 
 from .decorators import role_required
 from .forms import LoginForm, ProfileForm, RegistrationForm
@@ -40,7 +45,10 @@ class UserLoginView(LoginView):
     redirect_authenticated_user = True
 
     def form_valid(self, form):
-        messages.success(self.request, f"Welcome back, {form.get_user().get_short_name() or form.get_user().username}!")
+        messages.success(
+            self.request,
+            f"Welcome back, {form.get_user().get_short_name() or form.get_user().username}!",
+        )
         return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -63,24 +71,79 @@ def dashboard_redirect(request):
 
 @role_required(User.Role.ADMIN)
 def admin_dashboard(request):
+    all_logs = VisitationLog.objects.all()
+    analytics = build_visitation_analytics(all_logs)
+    top_sites = (
+        HeritageSite.objects.select_related("district", "category", "created_by")
+        .annotate(
+            total_visitors_sum=Coalesce(Sum("visitation_logs__total_visitors"), 0),
+            logs_recorded=Count("visitation_logs", distinct=True),
+        )
+        .order_by("-total_visitors_sum", "name")[:5]
+    )
     context = {
         "total_users": User.objects.count(),
         "admin_count": User.objects.filter(role=User.Role.ADMIN).count(),
         "curator_count": User.objects.filter(role=User.Role.CURATOR).count(),
         "viewer_count": User.objects.filter(role=User.Role.VIEWER).count(),
-        "recent_users": User.objects.order_by("-date_joined")[:8],
+        "recent_users": User.objects.order_by("-date_joined")[:6],
+        "total_sites": HeritageSite.objects.count(),
+        "analytics": analytics,
+        "top_sites": top_sites,
     }
     return render(request, "accounts/dashboards/admin.html", context)
 
 
 @role_required(User.Role.CURATOR)
 def curator_dashboard(request):
-    return render(request, "accounts/dashboards/curator.html")
+    today = timezone.localdate()
+    my_sites = (
+        HeritageSite.objects.filter(created_by=request.user)
+        .select_related("district", "category")
+        .annotate(
+            total_visitors_sum=Coalesce(Sum("visitation_logs__total_visitors"), 0),
+            logs_recorded=Count("visitation_logs", distinct=True),
+        )
+        .order_by("-total_visitors_sum", "name")
+    )
+    my_logs = VisitationLog.objects.filter(site__created_by=request.user).select_related("site")
+    analytics = build_visitation_analytics(my_logs)
+    logs_this_month = my_logs.filter(
+        visit_date__year=today.year,
+        visit_date__month=today.month,
+    ).count()
+
+    context = {
+        "my_sites": my_sites[:6],
+        "my_site_count": my_sites.count(),
+        "analytics": analytics,
+        "logs_this_month": logs_this_month,
+        "recent_logs": my_logs[:6],
+    }
+    return render(request, "accounts/dashboards/curator.html", context)
 
 
 @role_required(User.Role.VIEWER)
 def viewer_dashboard(request):
-    return render(request, "accounts/dashboards/viewer.html")
+    published_sites = (
+        HeritageSite.objects.filter(is_published=True)
+        .select_related("district", "category")
+        .annotate(
+            total_visitors_sum=Coalesce(Sum("visitation_logs__total_visitors"), 0),
+            logs_recorded=Count("visitation_logs", distinct=True),
+        )
+        .order_by("-total_visitors_sum", "name")
+    )
+    public_logs = VisitationLog.objects.filter(site__is_published=True)
+    analytics = build_visitation_analytics(public_logs)
+
+    context = {
+        "published_site_count": published_sites.count(),
+        "district_count": District.objects.count(),
+        "analytics": analytics,
+        "top_sites": published_sites[:6],
+    }
+    return render(request, "accounts/dashboards/viewer.html", context)
 
 
 @login_required

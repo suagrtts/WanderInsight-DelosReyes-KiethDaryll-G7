@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Visitation Logs{% endblock %}
+{% block content %}
+<div class="dash-hero {% if user.is_admin_role %}dash-admin{% else %}dash-curator{% endif %} mb-4">
+  <div class="dash-hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+    <div>
+      <span class="mono-tag d-inline-flex align-items-center gap-1" style="color: var(--wi-gold);">
+        <span class="ua-icon" data-ua="calendar" data-ua-interaction="hover" data-ua-size="16"></span>
+        DAILY ATTENDANCE TELEMETRY · BR-01 &amp; BR-04
+      </span>
+      <h1 class="mt-1 mb-1">Daily Visitation Logs</h1>
+      <p class="mb-0 dash-hero-subtitle">
+        {% if user.is_admin_role %}
+          Review, validate, and manage daily visitor foot traffic across all Cebu heritage landmarks.
+        {% else %}
+          Record and audit daily visitor origin counts for landmarks under your custodianship.
+        {% endif %}
+      </p>
+    </div>
+    <a href="{% url 'heritage:log_create' %}" class="btn btn-primary d-inline-flex align-items-center gap-2">
+      <span class="ua-icon" data-ua="plus-circle" data-ua-interaction="click-replay" data-ua-size="18"></span>Record Visitation Log
+    </a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card kpi-card"><div class="card-body">
+      <span class="kpi-label">Recorded Logs</span>
+      <div class="kpi-value">{{ analytics.log_count }}</div>
+      <div class="kpi-delta text-muted">Daily unique (BR-04)</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card kpi-card"><div class="card-body">
+      <span class="kpi-label">Total Visitors</span>
+      <div class="kpi-value">{{ analytics.total_visitors }}</div>
+      <div class="kpi-delta text-success">Avg. {{ analytics.avg_daily }}/day</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card kpi-card"><div class="card-body">
+      <span class="kpi-label">Local Residents</span>
+      <div class="kpi-value">{{ analytics.local_visitors }}</div>
+      <div class="kpi-delta text-muted">{{ analytics.local_pct }}% share</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card kpi-card"><div class="card-body">
+      <span class="kpi-label">Domestic &amp; Foreign</span>
+      <div class="kpi-value">{{ analytics.domestic_visitors|add:analytics.foreign_visitors }}</div>
+      <div class="kpi-delta text-muted">{{ analytics.domestic_pct }}% dom · {{ analytics.foreign_pct }}% intl</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <search aria-label="Filter visitation logs">
+      <form method="get" action="{% url 'heritage:log_list' %}" class="row g-3 align-items-end">
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="id_site_filter">Heritage Landmark</label>
+          <select id="id_site_filter" name="site" class="form-select">
+            <option value="">All Accessible Landmarks</option>
+            {% for s in available_sites %}
+              <option value="{{ s.id }}" {% if selected_site == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-sm-4 col-md-3">
+          <label class="form-label" for="id_weather_filter">Weather</label>
+          <select id="id_weather_filter" name="weather" class="form-select">
+            <option value="">Any Weather</option>
+            {% for val, label in weather_choices %}
+              <option value="{{ val }}" {% if selected_weather == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-sm-4 col-md-2">
+          <label class="form-label" for="id_date_from">From Date</label>
+          <input type="date" id="id_date_from" name="date_from" value="{{ date_from }}" class="form-control">
+        </div>
+        <div class="col-6 col-sm-4 col-md-3">
+          <label class="form-label" for="id_date_to">To Date</label>
+          <input type="date" id="id_date_to" name="date_to" value="{{ date_to }}" class="form-control">
+        </div>
+        <div class="col-12 d-flex justify-content-end gap-2">
+          {% if selected_site or selected_weather or date_from or date_to %}
+            <a href="{% url 'heritage:log_list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
+          {% endif %}
+          <button type="submit" class="btn btn-primary btn-sm px-4">Filter Logs</button>
+        </div>
+      </form>
+    </search>
+  </div>
+</div>
+
+{% if logs %}
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span id="visitation-logs-caption" class="fw-semibold d-inline-flex align-items-center gap-2">
+      <span class="ua-icon text-primary" data-ua="clipboard" data-ua-interaction="hover-replay" data-ua-size="20"></span>Recorded Daily Foot Traffic
+    </span>
+    <span class="mono-tag text-muted">Showing {{ logs|length }} entr{{ logs|length|pluralize:"y,ies" }}</span>
+  </div>
+  <div class="table-responsive" role="region" aria-labelledby="visitation-logs-caption" tabindex="0">
+    <table class="table table-hover mb-0 align-middle wi-data-table">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Visit Date</th>
+          <th scope="col">Heritage Site</th>
+          <th scope="col" class="text-end">Local</th>
+          <th scope="col" class="text-end">Domestic</th>
+          <th scope="col" class="text-end">Foreign</th>
+          <th scope="col" class="text-end">Total</th>
+          <th scope="col">Weather</th>
+          <th scope="col">Recorded By</th>
+          <th scope="col" class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <th scope="row" class="mono-tag fw-semibold">{{ log.visit_date|date:"Y-m-d" }}</th>
+          <td>
+            <a href="{% url 'heritage:site_detail' log.site.slug %}" class="wi-site-link">{{ log.site.name }}</a>
+            {% if log.special_event %}
+              <div class="small text-muted">{{ log.special_event }}</div>
+            {% endif %}
+          </td>
+          <td class="text-end mono-tag">{{ log.local_visitors }}</td>
+          <td class="text-end mono-tag">{{ log.domestic_visitors }}</td>
+          <td class="text-end mono-tag">{{ log.foreign_visitors }}</td>
+          <td class="text-end mono-tag fw-bold text-primary">{{ log.total_visitors }}</td>
+          <td><span class="wi-category-chip">{{ log.get_weather_condition_display }}</span></td>
+          <td class="small">{{ log.recorded_by.username }}</td>
+          <td class="text-end">
+            {% if log.user_can_manage %}
+            <div class="d-inline-flex gap-1">
+              <a href="{% url 'heritage:log_update' log.pk %}" class="btn btn-outline-secondary btn-sm">Edit</a>
+              <a href="{% url 'heritage:log_delete' log.pk %}" class="btn btn-outline-danger btn-sm">Delete</a>
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body py-5 text-center">
+    <span class="ua-icon text-primary mb-2" data-ua="calendar" data-ua-interaction="hover" data-ua-size="36"></span>
+    <h2 class="h4 mt-2">No daily visitation logs recorded yet</h2>
+    <p class="text-muted mx-auto mb-3" style="max-width: 48ch;">
+      Submit a daily attendance entry for any landmark you manage to populate live trend charts and demographic origin splits.
+    </p>
+    <a href="{% url 'heritage:log_create' %}" class="btn btn-primary">Record First Visitation Log</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import F, Q
 from django.db.models.functions import Lower
 from django.utils.text import slugify
 
@@ -176,3 +177,95 @@ class HeritageSite(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.municipality})"
+
+
+class VisitationLog(models.Model):
+    """Daily visitor attendance and demographic breakdown per landmark (SDD F-03, BR-01, BR-04)."""
+
+    class WeatherCondition(models.TextChoices):
+        SUNNY = "SUNNY", "Sunny / Clear"
+        PARTLY_CLOUDY = "PARTLY_CLOUDY", "Partly Cloudy"
+        OVERCAST = "OVERCAST", "Overcast"
+        RAINY = "RAINY", "Rainy / Monsoon"
+
+    site = models.ForeignKey(
+        HeritageSite,
+        on_delete=models.CASCADE,
+        related_name="visitation_logs",
+    )
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="recorded_visitation_logs",
+    )
+    visit_date = models.DateField(
+        help_text="Date of recorded foot traffic (one unique log per landmark per day, BR-04).",
+    )
+    local_visitors = models.PositiveIntegerField(
+        default=0,
+        help_text="Cebu local residents.",
+    )
+    domestic_visitors = models.PositiveIntegerField(
+        default=0,
+        help_text="Visitors from other Philippine provinces.",
+    )
+    foreign_visitors = models.PositiveIntegerField(
+        default=0,
+        help_text="International tourists.",
+    )
+    total_visitors = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+        help_text="Must equal Local + Domestic + Foreign visitors (BR-01).",
+    )
+    weather_condition = models.CharField(
+        max_length=20,
+        choices=WeatherCondition.choices,
+        default=WeatherCondition.SUNNY,
+    )
+    special_event = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Optional festival, school tour, or cultural event.",
+    )
+    remarks = models.TextField(
+        blank=True,
+        help_text="Optional conservation or crowd-flow observations.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "visitation_logs"
+        ordering = ["-visit_date", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["site", "visit_date"],
+                name="uniq_visitation_site_date",
+            ),
+            models.CheckConstraint(
+                condition=Q(total_visitors__gt=0),
+                name="chk_visitation_total_positive",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    total_visitors=F("local_visitors")
+                    + F("domestic_visitors")
+                    + F("foreign_visitors")
+                ),
+                name="chk_visitation_br01_origin_sum",
+            ),
+        ]
+
+    def can_manage(self, user):
+        """Curators can only modify logs they recorded on their own sites; Admins can manage all."""
+        if not user or not user.is_authenticated:
+            return False
+        if user.is_admin_role:
+            return True
+        return bool(
+            user.is_curator
+            and (self.recorded_by_id == user.id or self.site.created_by_id == user.id)
+        )
+
+    def __str__(self):
+        return f"{self.site.name} · {self.visit_date} ({self.total_visitors} visitors)"

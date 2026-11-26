@@ -1,64 +1,92 @@
 {% extends "base.html" %}
 {% block title %}Viewer Dashboard{% endblock %}
-{% block role_nav %}
-<li class="nav-item"><a class="nav-link active d-inline-flex align-items-center gap-1" href="{% url 'accounts:viewer_dashboard' %}"><span class="ua-icon" data-ua="home" data-ua-interaction="hover" data-ua-size="18"></span>Dashboard</a></li>
-<li class="nav-item"><a class="nav-link disabled d-inline-flex align-items-center gap-1" href="#" aria-disabled="true"><span class="ua-icon" data-ua="explore" data-ua-interaction="hover" data-ua-size="18"></span>Explore Heritage Sites</a></li>
-<li class="nav-item"><a class="nav-link disabled d-inline-flex align-items-center gap-1" href="#" aria-disabled="true"><span class="ua-icon" data-ua="bar-chart-2" data-ua-interaction="hover-replay" data-ua-size="18"></span>Regional Overview</a></li>
-{% endblock %}
 {% block content %}
 <div class="dash-hero dash-viewer mb-4">
   <div id="wi-three-canvas" class="three-canvas-wrap" style="opacity:0.45;" aria-hidden="true"></div>
-  <div class="dash-hero-content">
-    <span class="mono-tag d-inline-flex align-items-center gap-1" style="color: var(--wi-gold);"><span class="ua-icon" data-ua="globe" data-ua-interaction="hover-loop" data-ua-size="16"></span>ROLE: VIEWER · PUBLIC CULTURAL ANALYTICS</span>
-    <h1 class="mt-1 mb-1 d-flex align-items-center gap-2"><span class="ua-icon" data-ua="explore" data-ua-interaction="hover" data-ua-size="34" style="color: var(--wi-gold);"></span>Viewer Dashboard</h1>
-    <p class="mb-0 dash-hero-subtitle">Welcome, {{ user.get_full_name|default:user.username }}. Explore Cebu's cultural heritage landmarks and their visitor trends.</p>
+  <div class="dash-hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+    <div>
+      <span class="mono-tag d-inline-flex align-items-center gap-1" style="color: var(--wi-gold);"><span class="ua-icon" data-ua="globe" data-ua-interaction="hover-loop" data-ua-size="16"></span>ROLE: VIEWER · PUBLIC CULTURAL ANALYTICS</span>
+      <h1 class="mt-1 mb-1 d-flex align-items-center gap-2"><span class="ua-icon" data-ua="explore" data-ua-interaction="hover" data-ua-size="34" style="color: var(--wi-gold);"></span>Viewer Dashboard</h1>
+      <p class="mb-0 dash-hero-subtitle">Welcome, {{ user.get_full_name|default:user.username }}. Explore Cebu's cultural heritage landmarks, preservation classifications, and regional visitor trends.</p>
+    </div>
+    <a href="{% url 'heritage:site_list' %}" class="btn btn-light d-inline-flex align-items-center gap-2">
+      <span class="ua-icon" data-ua="explore" data-ua-interaction="hover" data-ua-size="18"></span>Explore Heritage Catalog
+    </a>
   </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><span class="kpi-label">Published Landmarks</span><div class="kpi-value">{{ published_site_count }}</div><div class="kpi-delta text-muted">Across {{ district_count }} district{{ district_count|pluralize }}</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><span class="kpi-label">Regional Visitors</span><div class="kpi-value">{{ analytics.total_visitors }}</div><div class="kpi-delta text-success">Verified attendance</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><span class="kpi-label">Local Residents</span><div class="kpi-value">{{ analytics.local_pct }}%</div><div class="kpi-delta text-muted">{{ analytics.local_visitors }} visitors</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><span class="kpi-label">Tourism Share</span><div class="kpi-value">{{ analytics.domestic_pct|floatformat:0 }}% / {{ analytics.foreign_pct|floatformat:0 }}%</div><div class="kpi-delta text-muted">Domestic / Foreign</div></div></div></div>
 </div>
 
 <div class="row g-3 mb-4">
   <div class="col-lg-8">
     <div class="card h-100">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <span class="fw-semibold d-inline-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="trending-up" data-ua-interaction="hover-replay" data-ua-size="20"></span>Regional Foot-Traffic Trend (Chart.js · F-06)</span>
-        <span class="mono-tag text-muted">Cebu Heritage Corridor</span>
+        <span class="fw-semibold d-inline-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="trending-up" data-ua-interaction="hover-replay" data-ua-size="20"></span>Regional Foot-Traffic Trend (F-06)</span>
+        <span class="mono-tag text-muted">{% if analytics.has_chart_data %}Live Cebu Corridor Series{% else %}Cebu Heritage Corridor{% endif %}</span>
       </div>
       <div class="card-body">
-        <div class="chart-box"><canvas id="wi-visitation-chart"></canvas></div>
+        <div class="chart-box">
+          <canvas id="wi-visitation-chart" data-labels='{{ analytics.trend_labels_json }}' data-values='{{ analytics.trend_values_json }}'></canvas>
+        </div>
       </div>
     </div>
   </div>
   <div class="col-lg-4">
     <div class="card h-100">
-      <div class="card-header fw-semibold d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="pie-chart" data-ua-interaction="hover-replay" data-ua-size="20"></span>Visitor Demographics</div>
+      <div class="card-header fw-semibold d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="pie-chart" data-ua-interaction="hover-replay" data-ua-size="20"></span>Visitor Demographics (BR-01)</div>
       <div class="card-body">
-        <div class="chart-box"><canvas id="wi-demographic-chart"></canvas></div>
+        <div class="chart-box">
+          <canvas id="wi-demographic-chart" data-origin-values='{{ analytics.origin_values_json }}'></canvas>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="row g-3">
-  <div class="col-md-4">
-    <div class="card card-interactive h-100"><div class="card-body">
-      <h2 class="h5 d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="24"></span>Heritage Sites</h2>
-      <p class="text-muted small">Browse landmark profiles: history, category, district, and preservation status.</p>
-      <span class="badge text-bg-light border mono-tag">Coming soon</span>
-    </div></div>
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span id="viewer-rankings-caption" class="fw-semibold d-inline-flex align-items-center gap-2">
+      <span class="ua-icon text-primary" data-ua="award" data-ua-interaction="hover-replay" data-ua-size="20"></span>Most Visited Cebu Heritage Landmarks
+    </span>
+    <a href="{% url 'heritage:site_list' %}" class="btn btn-outline-primary btn-sm">Browse Full Catalog</a>
   </div>
-  <div class="col-md-4">
-    <div class="card card-interactive h-100"><div class="card-body">
-      <h2 class="h5 d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="bar-chart-2" data-ua-interaction="hover-replay" data-ua-size="24"></span>Site Analytics</h2>
-      <p class="text-muted small">View foot-traffic trends, visitor demographics, and ratings for any landmark.</p>
-      <span class="badge text-bg-light border mono-tag">Coming soon</span>
-    </div></div>
-  </div>
-  <div class="col-md-4">
-    <div class="card card-interactive h-100"><div class="card-body">
-      <h2 class="h5 d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="award" data-ua-interaction="hover-replay" data-ua-size="24"></span>Regional Rankings</h2>
-      <p class="text-muted small">Compare popularity across districts and heritage categories.</p>
-      <span class="badge text-bg-light border mono-tag">Coming soon</span>
-    </div></div>
+  <div class="table-responsive" role="region" aria-labelledby="viewer-rankings-caption" tabindex="0">
+    <table class="table table-hover mb-0 align-middle wi-data-table">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Landmark</th>
+          <th scope="col">District &amp; Municipality</th>
+          <th scope="col">Category</th>
+          <th scope="col">Preservation</th>
+          <th scope="col" class="text-end">Total Visitors</th>
+          <th scope="col" class="text-end">Profile</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for site in top_sites %}
+        <tr>
+          <th scope="row">
+            <a href="{% url 'heritage:site_detail' site.slug %}" class="wi-site-link">{{ site.name }}</a>
+          </th>
+          <td class="small">{{ site.district.name }} · {{ site.municipality }}</td>
+          <td><span class="wi-category-chip">{{ site.category.name }}</span></td>
+          <td><span class="wi-status-pill wi-status-{{ site.preservation_status|lower }}">{{ site.get_preservation_status_display }}</span></td>
+          <td class="text-end mono-tag fw-bold text-primary">{{ site.total_visitors_sum }}</td>
+          <td class="text-end">
+            <a href="{% url 'heritage:site_detail' site.slug %}" class="btn btn-outline-primary btn-sm">Inspect</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-4">No published heritage sites available yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
-<div class="alert alert-light border mt-4 mb-0 d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="info" data-ua-interaction="hover" data-ua-size="20"></span><span>Your account has <strong>read-only</strong> access to WanderInsight dashboards.</span></div>
+<div class="alert alert-light border mt-4 mb-0 d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="info" data-ua-interaction="hover" data-ua-size="20"></span><span>Your account has <strong>read-only</strong> access to WanderInsight heritage catalogs and telemetry dashboards.</span></div>
 {% endblock %}

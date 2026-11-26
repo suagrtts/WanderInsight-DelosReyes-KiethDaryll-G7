@@ -123,7 +123,7 @@
           <th scope="col">Category</th>
           <th scope="col">Est.</th>
           <th scope="col">Preservation Status</th>
-          <th scope="col">Daily Cap.</th>
+          <th scope="col" class="text-end">Visitors</th>
           <th scope="col">Curator</th>
           <th scope="col" class="text-end">Actions</th>
         </tr>
@@ -149,7 +149,7 @@
               {{ site.get_preservation_status_display }}
             </span>
           </td>
-          <td class="mono-tag">{{ site.daily_capacity }}</td>
+          <td class="text-end mono-tag fw-semibold">{{ site.all_time_visitors }}</td>
           <td class="small">
             {{ site.created_by.get_full_name|default:site.created_by.username }}
           </td>
@@ -157,6 +157,7 @@
             <div class="d-inline-flex gap-1">
               <a href="{% url 'heritage:site_detail' site.slug %}" class="btn btn-outline-primary btn-sm">View</a>
               {% if site.user_can_manage %}
+                <a href="{% url 'heritage:site_log_create' site.slug %}" class="btn btn-primary btn-sm">+ Log</a>
                 <a href="{% url 'heritage:site_update' site.slug %}" class="btn btn-outline-secondary btn-sm">Edit</a>
               {% endif %}
             </div>
