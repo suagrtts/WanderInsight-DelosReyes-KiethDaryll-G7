@@ -83,7 +83,12 @@
         {% for site in top_sites %}
         <tr>
           <th scope="row">
-            <a href="{% url 'heritage:site_detail' site.slug %}" class="wi-site-link">{{ site.name }}</a>
+            <div class="d-flex align-items-center gap-2">
+              {% if site.resolved_image_url %}
+                <img src="{{ site.resolved_image_url }}" alt="{{ site.name }}" class="wi-landmark-thumb wi-landmark-thumb-sm" loading="lazy">
+              {% endif %}
+              <a href="{% url 'heritage:site_detail' site.slug %}" class="wi-site-link">{{ site.name }}</a>
+            </div>
           </th>
           <td class="small">{{ site.district.name }} · {{ site.municipality }}</td>
           <td><span class="wi-category-chip">{{ site.category.name }}</span></td>

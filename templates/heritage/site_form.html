@@ -41,7 +41,7 @@
         </div>
         {% endif %}
 
-        <form method="post" action="{% if is_edit %}{% url 'heritage:site_update' site.slug %}{% else %}{% url 'heritage:site_create' %}{% endif %}" novalidate>
+        <form method="post" enctype="multipart/form-data" action="{% if is_edit %}{% url 'heritage:site_update' site.slug %}{% else %}{% url 'heritage:site_create' %}{% endif %}" novalidate>
           {% csrf_token %}
 
           <fieldset class="wi-fieldset mb-4">
@@ -111,6 +111,15 @@
               {% for err in form.preservation_tags.errors %}
                 <div class="invalid-feedback d-block">{{ err }}</div>
               {% endfor %}
+            </div>
+
+            <div class="row g-3 mb-2">
+              <div class="col-md-6">
+                {% include "partials/field.html" with field=form.cover_image %}
+              </div>
+              <div class="col-md-6">
+                {% include "partials/field.html" with field=form.image_url %}
+              </div>
             </div>
 
             {% include "partials/field.html" with field=form.historical_overview %}

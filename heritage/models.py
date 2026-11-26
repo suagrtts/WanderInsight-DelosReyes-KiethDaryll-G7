@@ -1,4 +1,5 @@
 from decimal import Decimal
+from pathlib import Path
 
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -136,6 +137,17 @@ class HeritageSite(models.Model):
     historical_overview = models.TextField(
         help_text="Historical background, architectural notes, and cultural significance (min. 30 characters).",
     )
+    cover_image = models.ImageField(
+        upload_to="heritage_sites/",
+        blank=True,
+        null=True,
+        help_text="Optional uploaded landmark photograph (JPEG, PNG, or WebP, max 5 MB).",
+    )
+    image_url = models.URLField(
+        max_length=500,
+        blank=True,
+        help_text="Optional direct image URL (e.g., Wikimedia Commons).",
+    )
     is_published = models.BooleanField(
         default=True,
         help_text="Published landmarks appear in the read-only Viewer catalog.",
@@ -168,6 +180,20 @@ class HeritageSite(models.Model):
         if not self.slug:
             self.slug = self._generate_unique_slug()
         super().save(*args, **kwargs)
+
+    @property
+    def resolved_image_url(self):
+        """Return uploaded photo, external image URL, or bundled Wikimedia Commons static photo."""
+        if self.cover_image:
+            return self.cover_image.url
+        if self.image_url:
+            return self.image_url
+        if self.slug:
+            bundled = Path(settings.BASE_DIR) / "static" / "images" / "heritage" / f"{self.slug}.jpg"
+            if bundled.exists():
+                static_prefix = settings.STATIC_URL if settings.STATIC_URL.startswith("/") else f"/{settings.STATIC_URL}"
+                return f"{static_prefix}images/heritage/{self.slug}.jpg"
+        return ""
 
     def can_manage(self, user):
         """Only the Curator who created the site or an Administrator may edit/delete it (BR-10)."""
