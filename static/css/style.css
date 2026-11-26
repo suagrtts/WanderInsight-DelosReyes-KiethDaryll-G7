@@ -540,3 +540,172 @@ a:hover { color: var(--wi-primary-hover); text-decoration: underline; }
     70% { transform: translateX(-3px); }
   }
 }
+
+
+/* ==========================================================================
+   Heritage Site Registry & Visitation Log UI Components (PD2 Vertical Slice)
+   ========================================================================== */
+.wi-scope-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.3rem;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--wi-border);
+  border-radius: 12px;
+}
+.wi-scope-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0.45rem 0.95rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--wi-ink-muted);
+  text-decoration: none;
+  transition: background-color var(--wi-duration-snap) ease, color var(--wi-duration-snap) ease;
+}
+.wi-scope-tab:hover {
+  color: var(--wi-ink);
+  text-decoration: none;
+  background: rgba(22, 20, 18, 0.05);
+}
+.wi-scope-tab.active {
+  background: var(--wi-primary);
+  color: #FFFFFF;
+}
+.wi-count-pill {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(22, 20, 18, 0.09);
+  font-variant-numeric: tabular-nums;
+}
+.wi-scope-tab.active .wi-count-pill {
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF;
+}
+
+.wi-status-pill {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.wi-status-well_preserved {
+  background: rgba(30, 86, 49, 0.12);
+  color: #164425;
+  border-color: rgba(30, 86, 49, 0.28);
+}
+.wi-status-restoration_ongoing {
+  background: rgba(200, 146, 46, 0.16);
+  color: #6B490A;
+  border-color: rgba(200, 146, 46, 0.35);
+}
+.wi-status-at_risk {
+  background: rgba(127, 29, 29, 0.12);
+  color: #7F1D1D;
+  border-color: rgba(127, 29, 29, 0.28);
+}
+.wi-status-archived {
+  background: rgba(22, 20, 18, 0.08);
+  color: #4A443E;
+  border-color: rgba(22, 20, 18, 0.18);
+}
+
+.wi-category-chip {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.22rem 0.6rem;
+  border-radius: 6px;
+  background: var(--wi-surface-subtle);
+  color: var(--wi-ink);
+  border: 1px solid var(--wi-border);
+}
+
+.wi-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(29, 92, 99, 0.1);
+  color: var(--wi-teal);
+  border: 1px solid rgba(29, 92, 99, 0.24);
+}
+
+.wi-fieldset {
+  border: 1px solid var(--wi-border);
+  border-radius: calc(var(--wi-radius-card) - 4px);
+  padding: 1.25rem;
+  background: rgba(246, 243, 236, 0.45);
+}
+.wi-legend {
+  float: none;
+  width: auto;
+  padding: 0 0.5rem;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--wi-ink);
+}
+
+.wi-check-card {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--wi-border);
+  border-radius: var(--wi-radius-inner);
+  background: #FFFFFF;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: border-color var(--wi-duration-snap) ease, background-color var(--wi-duration-snap) ease;
+}
+.wi-check-card:hover {
+  border-color: var(--wi-primary);
+  background: rgba(140, 59, 26, 0.04);
+}
+.wi-check-card input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--wi-primary);
+  flex-shrink: 0;
+}
+
+.wi-meta-list dt,
+.wi-meta-list dd {
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--wi-border);
+}
+.wi-meta-list dt:last-of-type,
+.wi-meta-list dd:last-of-type {
+  border-bottom: none;
+}
+
+.wi-data-table th,
+.wi-data-table td {
+  padding: 0.85rem 1rem;
+}
+.wi-site-link {
+  font-weight: 600;
+  color: var(--wi-ink);
+}
+.wi-site-link:hover {
+  color: var(--wi-primary);
+}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}{{ site.name }}{% endblock %}
+{% block content %}
+<nav aria-label="Breadcrumb" class="mb-3">
+  <ol class="breadcrumb mb-0 small">
+    <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'heritage:site_list' %}">Heritage Sites</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ site.name }}</li>
+  </ol>
+</nav>
+
+<div class="dash-hero {% if user.is_admin_role %}dash-admin{% elif user.is_curator %}dash-curator{% else %}dash-viewer{% endif %} mb-4">
+  <div class="dash-hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+    <div>
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        <span class="mono-tag" style="color: var(--wi-gold);">{{ site.category.name }} · EST. {{ site.established_year }}</span>
+        <span class="wi-status-pill wi-status-{{ site.preservation_status|lower }}">{{ site.get_preservation_status_display }}</span>
+        {% if not site.is_published %}
+          <span class="badge text-bg-warning mono-tag">Unpublished Draft</span>
+        {% endif %}
+      </div>
+      <h1 class="mb-1">{{ site.name }}</h1>
+      <p class="mb-0 dash-hero-subtitle">
+        {{ site.municipality }} · {{ site.district.name }} ({{ site.district.get_zone_display }}) ·
+        <span class="mono-tag">{{ site.latitude }}°N, {{ site.longitude }}°E</span>
+      </p>
+    </div>
+    {% if can_manage %}
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'heritage:site_update' site.slug %}" class="btn btn-light d-inline-flex align-items-center gap-2">
+        <span class="ua-icon" data-ua="edit" data-ua-interaction="hover" data-ua-size="18"></span>Edit Site
+      </a>
+      <a href="{% url 'heritage:site_delete' site.slug %}" class="btn btn-outline-light d-inline-flex align-items-center gap-2">
+        <span class="ua-icon" data-ua="trash" data-ua-interaction="hover-replay" data-ua-size="18"></span>Delete
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header fw-semibold d-flex align-items-center gap-2">
+        <span class="ua-icon text-primary" data-ua="file-text" data-ua-interaction="hover-replay" data-ua-size="20"></span>Historical Overview &amp; Conservation Notes
+      </div>
+      <div class="card-body">
+        <p class="mb-4" style="white-space: pre-line;">{{ site.historical_overview }}</p>
+
+        <h2 class="h6 text-uppercase mono-tag text-muted mb-2">Conservation Designations &amp; Visitor Attributes</h2>
+        <div class="d-flex flex-wrap gap-2">
+          {% for tag in site.preservation_tags.all %}
+            <span class="wi-tag-badge">
+              <i class="bi bi-patch-check-fill me-1" aria-hidden="true"></i>{{ tag.name }}
+            </span>
+          {% empty %}
+            <span class="text-muted small">No additional conservation tags assigned yet.</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-semibold d-flex align-items-center gap-2">
+        <span class="ua-icon text-primary" data-ua="compass" data-ua-interaction="hover-replay" data-ua-size="20"></span>Registry Metadata
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0 wi-meta-list">
+          <dt class="col-5 text-muted small">District</dt>
+          <dd class="col-7 fw-medium">{{ site.district.name }}</dd>
+
+          <dt class="col-5 text-muted small">Municipality</dt>
+          <dd class="col-7">{{ site.municipality }}</dd>
+
+          <dt class="col-5 text-muted small">Coordinates</dt>
+          <dd class="col-7 mono-tag">{{ site.latitude }}°N, {{ site.longitude }}°E</dd>
+
+          <dt class="col-5 text-muted small">Founded</dt>
+          <dd class="col-7 mono-tag">{{ site.established_year }}</dd>
+
+          <dt class="col-5 text-muted small">Daily Capacity</dt>
+          <dd class="col-7 mono-tag">{{ site.daily_capacity }} visitors</dd>
+
+          <dt class="col-5 text-muted small">Admission Fee</dt>
+          <dd class="col-7 mono-tag">{% if site.entry_fee > 0 %}PHP {{ site.entry_fee }}{% else %}Free Public Entry{% endif %}</dd>
+
+          <dt class="col-5 text-muted small">Custodian</dt>
+          <dd class="col-7">{{ site.custodian_organization|default:"—" }}</dd>
+
+          <dt class="col-5 text-muted small">Registered By</dt>
+          <dd class="col-7">
+            {{ site.created_by.get_full_name|default:site.created_by.username }}
+            <span class="badge role-badge role-{{ site.created_by.role|lower }} ms-1">{{ site.created_by.get_role_display }}</span>
+          </dd>
+
+          <dt class="col-5 text-muted small mb-0">Last Updated</dt>
+          <dd class="col-7 mono-tag mb-0">{{ site.updated_at|date:"M j, Y · H:i" }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

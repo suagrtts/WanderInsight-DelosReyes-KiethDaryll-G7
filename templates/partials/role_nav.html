@@ -1,0 +1,41 @@
+{% with cur=request.resolver_match.url_name ns=request.resolver_match.namespace %}
+<li class="nav-item">
+  <a class="nav-link {% if ns == 'accounts' and 'dashboard' in cur %}active{% endif %} d-inline-flex align-items-center gap-1" href="{% url 'accounts:dashboard' %}">
+    <span class="ua-icon" data-ua="home" data-ua-interaction="hover" data-ua-size="18"></span>Dashboard
+  </a>
+</li>
+{% if user.is_admin_role %}
+<li class="nav-item">
+  <a class="nav-link {% if ns == 'heritage' and cur in 'site_list,site_detail,site_create,site_update,site_delete' %}active{% endif %} d-inline-flex align-items-center gap-1" href="{% url 'heritage:site_list' %}">
+    <span class="ua-icon" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="18"></span>Heritage Registry
+  </a>
+</li>
+<li class="nav-item">
+  <a class="nav-link {% if ns == 'heritage' and cur == 'taxonomy_manage' %}active{% endif %} d-inline-flex align-items-center gap-1" href="{% url 'heritage:taxonomy_manage' %}">
+    <span class="ua-icon" data-ua="layers" data-ua-interaction="hover-replay" data-ua-size="18"></span>Districts &amp; Categories
+  </a>
+</li>
+<li class="nav-item">
+  <a class="nav-link d-inline-flex align-items-center gap-1" href="{% url 'admin:accounts_user_changelist' %}">
+    <span class="ua-icon" data-ua="users" data-ua-interaction="hover-replay" data-ua-size="18"></span>Manage Users
+  </a>
+</li>
+{% elif user.is_curator %}
+<li class="nav-item">
+  <a class="nav-link {% if ns == 'heritage' and cur in 'site_list,site_detail,site_update,site_delete' %}active{% endif %} d-inline-flex align-items-center gap-1" href="{% url 'heritage:site_list' %}">
+    <span class="ua-icon" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="18"></span>My Heritage Sites
+  </a>
+</li>
+<li class="nav-item">
+  <a class="nav-link {% if ns == 'heritage' and cur == 'site_create' %}active{% endif %} d-inline-flex align-items-center gap-1" href="{% url 'heritage:site_create' %}">
+    <span class="ua-icon" data-ua="plus-circle" data-ua-interaction="click-replay" data-ua-size="18"></span>Register Site
+  </a>
+</li>
+{% else %}
+<li class="nav-item">
+  <a class="nav-link {% if ns == 'heritage' and cur in 'site_list,site_detail' %}active{% endif %} d-inline-flex align-items-center gap-1" href="{% url 'heritage:site_list' %}">
+    <span class="ua-icon" data-ua="explore" data-ua-interaction="hover" data-ua-size="18"></span>Explore Heritage Sites
+  </a>
+</li>
+{% endif %}
+{% endwith %}
