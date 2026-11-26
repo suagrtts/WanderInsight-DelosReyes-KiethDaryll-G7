@@ -237,6 +237,12 @@ class VisitationLogForm(HeritageFormMixin, forms.ModelForm):
             self.add_error("site", "You can only record visitation logs for heritage sites you manage.")
 
         if site and visit_date:
+            min_year = max(1900, site.established_year)
+            if visit_date.year < min_year:
+                self.add_error(
+                    "visit_date",
+                    f'Visitation date cannot be earlier than {min_year} for "{site.name}".',
+                )
             dup_qs = VisitationLog.objects.filter(site=site, visit_date=visit_date)
             if self.instance.pk:
                 dup_qs = dup_qs.exclude(pk=self.instance.pk)
