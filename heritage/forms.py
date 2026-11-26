@@ -3,7 +3,7 @@ from decimal import Decimal
 from django import forms
 from django.utils import timezone
 
-from .models import District, HeritageCategory, HeritageSite, PreservationTag
+from .models import District, HeritageCategory, HeritageSite, PreservationTag, VisitationLog
 
 
 class HeritageFormMixin:
@@ -171,3 +171,91 @@ class HeritageCategoryForm(HeritageFormMixin, forms.ModelForm):
 
     def clean_code(self):
         return (self.cleaned_data.get("code") or "").strip().upper().replace(" ", "_")
+
+
+class VisitationLogForm(HeritageFormMixin, forms.ModelForm):
+    """Form enforcing BR-01 demographic origin sum, BR-04 daily uniqueness, and Curator site ownership."""
+
+    class Meta:
+        model = VisitationLog
+        fields = (
+            "site",
+            "visit_date",
+            "local_visitors",
+            "domestic_visitors",
+            "foreign_visitors",
+            "total_visitors",
+            "weather_condition",
+            "special_event",
+            "remarks",
+        )
+        widgets = {
+            "visit_date": forms.DateInput(attrs={"type": "date"}),
+            "local_visitors": forms.NumberInput(attrs={"min": 0, "data-origin-part": "1"}),
+            "domestic_visitors": forms.NumberInput(attrs={"min": 0, "data-origin-part": "1"}),
+            "foreign_visitors": forms.NumberInput(attrs={"min": 0, "data-origin-part": "1"}),
+            "total_visitors": forms.NumberInput(attrs={"min": 1}),
+            "special_event": forms.TextInput(
+                attrs={"placeholder": "e.g., Sinulog Heritage Walk / School Field Study"}
+            ),
+            "remarks": forms.Textarea(
+                attrs={"rows": 3, "placeholder": "Optional observations on visitor flow or site upkeep..."}
+            ),
+        }
+
+    def __init__(self, *args, user=None, locked_site=None, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+        if user is not None:
+            if user.is_admin_role:
+                self.fields["site"].queryset = HeritageSite.objects.all()
+            else:
+                self.fields["site"].queryset = HeritageSite.objects.filter(created_by=user)
+
+        if not self.is_bound and not self.instance.pk:
+            self.initial.setdefault("visit_date", timezone.localdate().isoformat())
+            if locked_site is not None:
+                self.initial.setdefault("site", locked_site.pk)
+
+    def clean_visit_date(self):
+        visit_date = self.cleaned_data.get("visit_date")
+        if visit_date and visit_date > timezone.localdate():
+            raise forms.ValidationError("Visitation date cannot be in the future.")
+        return visit_date
+
+    def clean(self):
+        cleaned = super().clean()
+        site = cleaned.get("site")
+        visit_date = cleaned.get("visit_date")
+        local_v = cleaned.get("local_visitors")
+        dom_v = cleaned.get("domestic_visitors")
+        for_v = cleaned.get("foreign_visitors")
+        total_v = cleaned.get("total_visitors")
+
+        if site and self.user and not self.user.is_admin_role and site.created_by_id != self.user.id:
+            self.add_error("site", "You can only record visitation logs for heritage sites you manage.")
+
+        if site and visit_date:
+            dup_qs = VisitationLog.objects.filter(site=site, visit_date=visit_date)
+            if self.instance.pk:
+                dup_qs = dup_qs.exclude(pk=self.instance.pk)
+            if dup_qs.exists():
+                self.add_error(
+                    "visit_date",
+                    f'A visitation log for "{site.name}" on {visit_date:%b %d, %Y} already exists (BR-04). '
+                    "Edit the existing log instead.",
+                )
+
+        if None not in (local_v, dom_v, for_v, total_v):
+            if total_v <= 0:
+                self.add_error("total_visitors", "Total visitors must be at least 1.")
+            else:
+                origin_sum = local_v + dom_v + for_v
+                if origin_sum != total_v:
+                    self.add_error(
+                        "total_visitors",
+                        f"Demographic sum mismatch (BR-01): Local ({local_v}) + Domestic ({dom_v}) "
+                        f"+ Foreign ({for_v}) = {origin_sum}, which must equal Total Visitors ({total_v}).",
+                    )
+        return cleaned

@@ -1,18 +1,20 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.decorators import role_required
 from accounts.models import User
 
-from .forms import DistrictForm, HeritageCategoryForm, HeritageSiteForm
-from .models import District, HeritageCategory, HeritageSite
+from .analytics import build_visitation_analytics
+from .forms import DistrictForm, HeritageCategoryForm, HeritageSiteForm, VisitationLogForm
+from .models import District, HeritageCategory, HeritageSite, VisitationLog
 
 
 @login_required
 def site_list(request):
-    """Role-aware Heritage Site Registry with search and taxonomy filters (SDD F-02)."""
+    """Role-aware Heritage Site Registry with search, taxonomy filters, and visitor totals (SDD F-02)."""
     user = request.user
     if user.is_admin_role:
         scope = request.GET.get("scope", "all")
@@ -32,8 +34,13 @@ def site_list(request):
         scope = "catalog"
         sites_qs = HeritageSite.objects.filter(is_published=True)
 
-    sites_qs = sites_qs.select_related("district", "category", "created_by").prefetch_related(
-        "preservation_tags"
+    sites_qs = (
+        sites_qs.select_related("district", "category", "created_by")
+        .prefetch_related("preservation_tags")
+        .annotate(
+            all_time_visitors=Coalesce(Sum("visitation_logs__total_visitors"), 0),
+            log_count=Count("visitation_logs", distinct=True),
+        )
     )
 
     q = (request.GET.get("q") or "").strip()
@@ -80,7 +87,7 @@ def site_list(request):
 
 @login_required
 def site_detail(request, slug):
-    """Detailed profile view for a Heritage Site with RBAC visibility check."""
+    """Detailed profile view for a Heritage Site with live visitation analytics and logs."""
     site = get_object_or_404(
         HeritageSite.objects.select_related("district", "category", "created_by").prefetch_related(
             "preservation_tags"
@@ -92,9 +99,17 @@ def site_detail(request, slug):
         messages.error(request, "You do not have permission to view this unpublished heritage site.")
         return redirect("heritage:site_list")
 
+    logs_qs = site.visitation_logs.select_related("recorded_by").all()
+    analytics = build_visitation_analytics(logs_qs)
+    recent_logs = list(logs_qs[:15])
+    for log in recent_logs:
+        log.user_can_manage = log.can_manage(request.user)
+
     context = {
         "site": site,
         "can_manage": can_manage,
+        "analytics": analytics,
+        "recent_logs": recent_logs,
     }
     return render(request, "heritage/site_detail.html", context)
 
@@ -175,6 +190,163 @@ def site_delete(request, slug):
         return redirect("heritage:site_list")
 
     return render(request, "heritage/site_confirm_delete.html", {"site": site})
+
+
+@role_required(User.Role.CURATOR, User.Role.ADMIN)
+def log_list(request):
+    """List daily visitation logs scoped to Curator's own sites or all sites for Administrators."""
+    user = request.user
+    if user.is_admin_role:
+        logs_qs = VisitationLog.objects.select_related("site", "site__district", "recorded_by").all()
+        available_sites = HeritageSite.objects.all()
+    else:
+        logs_qs = VisitationLog.objects.select_related("site", "site__district", "recorded_by").filter(
+            Q(site__created_by=user) | Q(recorded_by=user)
+        )
+        available_sites = HeritageSite.objects.filter(created_by=user)
+
+    site_id = (request.GET.get("site") or "").strip()
+    weather = (request.GET.get("weather") or "").strip()
+    date_from = (request.GET.get("date_from") or "").strip()
+    date_to = (request.GET.get("date_to") or "").strip()
+
+    if site_id.isdigit():
+        logs_qs = logs_qs.filter(site_id=int(site_id))
+    if weather in dict(VisitationLog.WeatherCondition.choices):
+        logs_qs = logs_qs.filter(weather_condition=weather)
+    if date_from:
+        logs_qs = logs_qs.filter(visit_date__gte=date_from)
+    if date_to:
+        logs_qs = logs_qs.filter(visit_date__lte=date_to)
+
+    analytics = build_visitation_analytics(logs_qs)
+    logs = list(logs_qs[:60])
+    for log in logs:
+        log.user_can_manage = log.can_manage(user)
+
+    return render(
+        request,
+        "heritage/log_list.html",
+        {
+            "logs": logs,
+            "analytics": analytics,
+            "available_sites": available_sites,
+            "weather_choices": VisitationLog.WeatherCondition.choices,
+            "selected_site": site_id,
+            "selected_weather": weather,
+            "date_from": date_from,
+            "date_to": date_to,
+        },
+    )
+
+
+@role_required(User.Role.CURATOR, User.Role.ADMIN)
+def log_create(request, slug=None):
+    """Record a new daily VisitationLog enforcing BR-01, BR-04, and Curator site ownership."""
+    locked_site = None
+    if slug is not None:
+        locked_site = get_object_or_404(HeritageSite, slug=slug)
+        if not locked_site.can_manage(request.user):
+            messages.error(request, "You can only log visitation for heritage sites that you manage.")
+            return redirect("heritage:site_detail", slug=locked_site.slug)
+
+    manageable_sites = (
+        HeritageSite.objects.all()
+        if request.user.is_admin_role
+        else HeritageSite.objects.filter(created_by=request.user)
+    )
+    if not manageable_sites.exists():
+        messages.info(
+            request,
+            "Register a heritage site under your custodianship first before recording daily visitation.",
+        )
+        return redirect("heritage:site_create")
+
+    if request.method == "POST":
+        form = VisitationLogForm(request.POST, user=request.user, locked_site=locked_site)
+        if form.is_valid():
+            log = form.save(commit=False)
+            log.recorded_by = request.user
+            log.save()
+            if log.total_visitors > log.site.daily_capacity:
+                messages.warning(
+                    request,
+                    f'Recorded {log.total_visitors} visitors, exceeding {log.site.name}\'s '
+                    f'recommended daily conservation capacity ({log.site.daily_capacity}).',
+                )
+            messages.success(
+                request,
+                f'Visitation log saved for "{log.site.name}" ({log.visit_date:%b %d, %Y} · {log.total_visitors} visitors).',
+            )
+            return redirect("heritage:site_detail", slug=log.site.slug)
+        messages.error(request, "Please resolve the visitation validation errors below.")
+    else:
+        form = VisitationLogForm(user=request.user, locked_site=locked_site)
+
+    return render(
+        request,
+        "heritage/log_form.html",
+        {
+            "form": form,
+            "locked_site": locked_site,
+            "is_edit": False,
+        },
+    )
+
+
+@role_required(User.Role.CURATOR, User.Role.ADMIN)
+def log_update(request, pk):
+    """Update an existing VisitationLog; restricted to managing Curator or Administrator."""
+    log = get_object_or_404(VisitationLog.objects.select_related("site", "recorded_by"), pk=pk)
+    if not log.can_manage(request.user):
+        messages.error(request, "You do not have permission to edit that visitation log.")
+        return redirect("heritage:site_detail", slug=log.site.slug)
+
+    if request.method == "POST":
+        form = VisitationLogForm(request.POST, instance=log, user=request.user)
+        if form.is_valid():
+            updated_log = form.save()
+            messages.success(
+                request,
+                f'Visitation log for "{updated_log.site.name}" ({updated_log.visit_date:%b %d, %Y}) updated.',
+            )
+            return redirect("heritage:site_detail", slug=updated_log.site.slug)
+        messages.error(request, "Please resolve the visitation validation errors below.")
+    else:
+        form = VisitationLogForm(instance=log, user=request.user)
+
+    return render(
+        request,
+        "heritage/log_form.html",
+        {
+            "form": form,
+            "log": log,
+            "locked_site": log.site,
+            "is_edit": True,
+        },
+    )
+
+
+@role_required(User.Role.CURATOR, User.Role.ADMIN)
+def log_delete(request, pk):
+    """Confirm and delete a VisitationLog; restricted to managing Curator or Administrator."""
+    log = get_object_or_404(VisitationLog.objects.select_related("site", "recorded_by"), pk=pk)
+    if not log.can_manage(request.user):
+        messages.error(request, "You do not have permission to delete that visitation log.")
+        return redirect("heritage:site_detail", slug=log.site.slug)
+
+    if request.method == "POST":
+        site_slug = log.site.slug
+        site_name = log.site.name
+        log_date = log.visit_date
+        log.delete()
+        messages.success(
+            request,
+            f'Visitation log for "{site_name}" on {log_date:%b %d, %Y} has been deleted.',
+        )
+        return redirect("heritage:site_detail", slug=site_slug)
+
+    return render(request, "heritage/log_confirm_delete.html", {"log": log})
 
 
 @role_required(User.Role.ADMIN)
