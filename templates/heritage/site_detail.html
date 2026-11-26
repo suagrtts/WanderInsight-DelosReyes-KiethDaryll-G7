@@ -81,8 +81,13 @@
       <div class="card-body">
         {% if site.resolved_image_url %}
         <figure class="wi-landmark-photo-wrap mb-4">
-          <img src="{{ site.resolved_image_url }}" alt="Photograph of {{ site.name }} in {{ site.municipality }}" class="wi-landmark-photo" loading="eager">
-          <figcaption class="wi-landmark-caption">{{ site.name }} · {{ site.municipality }}, {{ site.district.name }}</figcaption>
+          <img src="{{ site.resolved_image_url }}" data-gallery='{{ site.gallery_image_urls_json }}' data-gallery-key="{{ site.slug }}" alt="Photograph of {{ site.name }} in {{ site.municipality }}" class="wi-landmark-photo" loading="eager">
+          <figcaption class="wi-landmark-caption d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span>{{ site.name }} · {{ site.municipality }}, {{ site.district.name }}</span>
+            {% if site.gallery_image_urls|length > 1 %}
+              <span id="wi-photo-counter" class="text-primary fw-semibold">Photo 1 of {{ site.gallery_image_urls|length }} · Refresh for new view</span>
+            {% endif %}
+          </figcaption>
         </figure>
         {% endif %}
         <p class="mb-4" style="white-space: pre-line;">{{ site.historical_overview }}</p>
