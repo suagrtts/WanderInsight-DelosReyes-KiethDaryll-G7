@@ -1,6 +1,7 @@
 """Django settings for the WanderInsight project."""
 from pathlib import Path
 import os
+import sys
 
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
@@ -26,6 +27,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "accounts",
+    "heritage",
 ]
 
 MIDDLEWARE = [
@@ -60,7 +62,14 @@ WSGI_APPLICATION = "wanderinsight.wsgi.application"
 # Database: PostgreSQL / Supabase via DATABASE_URL in .env.
 # During development (before the final setup) it falls back to a local SQLite file.
 DATABASE_URL = os.getenv("DATABASE_URL")
-if DATABASE_URL:
+if "test" in sys.argv and os.getenv("USE_POSTGRES_FOR_TESTS", "").lower() not in ("1", "true"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
+    }
+elif DATABASE_URL:
     DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)}
 else:
     DATABASES = {

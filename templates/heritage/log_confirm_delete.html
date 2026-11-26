@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Delete Visitation Log{% endblock %}
+{% block content %}
+<div class="row justify-content-center py-3">
+  <div class="col-md-8 col-lg-6">
+    <div class="card border-danger-subtle">
+      <div class="card-header d-flex align-items-center gap-2 text-danger fw-semibold">
+        <span class="ua-icon" data-ua="alert-triangle" data-ua-interaction="loop" data-ua-size="22"></span>
+        Confirm Visitation Log Deletion
+      </div>
+      <div class="card-body p-4">
+        <h1 class="h4 mb-2">Delete visitation entry for {{ log.visit_date|date:"M j, Y" }}?</h1>
+        <p class="text-muted">
+          Removing this entry will immediately recalculate total attendance and demographic averages for <strong>{{ log.site.name }}</strong>.
+        </p>
+
+        <div class="p-3 rounded mb-4" style="background: var(--wi-surface-subtle);">
+          <div class="fw-semibold">{{ log.site.name }}</div>
+          <div class="small mono-tag text-muted mt-1">
+            Date: {{ log.visit_date|date:"Y-m-d" }} · Total: {{ log.total_visitors }} (Local {{ log.local_visitors }} / Dom {{ log.domestic_visitors }} / Foreign {{ log.foreign_visitors }})
+          </div>
+        </div>
+
+        <form method="post" action="{% url 'heritage:log_delete' log.pk %}" class="d-flex flex-wrap justify-content-end gap-2">
+          {% csrf_token %}
+          <a href="{% url 'heritage:site_detail' log.site.slug %}" class="btn btn-outline-secondary">Cancel</a>
+          <button type="submit" class="btn btn-danger px-4">Delete Visitation Log</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}{{ site.name }}{% endblock %}
+{% block content %}
+<nav aria-label="Breadcrumb" class="mb-3">
+  <ol class="breadcrumb mb-0 small">
+    <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'heritage:site_list' %}">Heritage Sites</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ site.name }}</li>
+  </ol>
+</nav>
+
+<div class="dash-hero {% if user.is_admin_role %}dash-admin{% elif user.is_curator %}dash-curator{% else %}dash-viewer{% endif %} mb-4">
+  <div class="dash-hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+    <div>
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        <span class="mono-tag" style="color: var(--wi-gold);">{{ site.category.name }} · EST. {{ site.established_year }}</span>
+        <span class="wi-status-pill wi-status-{{ site.preservation_status|lower }}">{{ site.get_preservation_status_display }}</span>
+        {% if not site.is_published %}
+          <span class="badge text-bg-warning mono-tag">Unpublished Draft</span>
+        {% endif %}
+      </div>
+      <h1 class="mb-1">{{ site.name }}</h1>
+      <p class="mb-0 dash-hero-subtitle">
+        {{ site.municipality }} · {{ site.district.name }} ({{ site.district.get_zone_display }}) ·
+        <span class="mono-tag">{{ site.latitude }}°N, {{ site.longitude }}°E</span>
+      </p>
+    </div>
+    {% if can_manage %}
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'heritage:site_log_create' site.slug %}" class="btn btn-primary d-inline-flex align-items-center gap-2">
+        <span class="ua-icon" data-ua="plus-circle" data-ua-interaction="click-replay" data-ua-size="18"></span>Log Visitation
+      </a>
+      <a href="{% url 'heritage:site_update' site.slug %}" class="btn btn-light d-inline-flex align-items-center gap-2">
+        <span class="ua-icon" data-ua="edit" data-ua-interaction="hover" data-ua-size="18"></span>Edit Site
+      </a>
+      <a href="{% url 'heritage:site_delete' site.slug %}" class="btn btn-outline-light d-inline-flex align-items-center gap-2">
+        <span class="ua-icon" data-ua="trash" data-ua-interaction="hover-replay" data-ua-size="18"></span>Delete
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card kpi-card"><div class="card-body">
+      <span class="kpi-label">All-Time Visitors</span>
+      <div class="kpi-value">{{ analytics.total_visitors }}</div>
+      <div class="kpi-delta text-success">SQL SUM() total</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card kpi-card"><div class="card-body">
+      <span class="kpi-label">Avg. Daily Visitors</span>
+      <div class="kpi-value">{{ analytics.avg_daily }}</div>
+      <div class="kpi-delta text-muted">Capacity: {{ site.daily_capacity }}/day</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card kpi-card"><div class="card-body">
+      <span class="kpi-label">Visitation Logs</span>
+      <div class="kpi-value">{{ analytics.log_count }}</div>
+      <div class="kpi-delta text-muted">Daily unique (BR-04)</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card kpi-card"><div class="card-body">
+      <span class="kpi-label">Local Share</span>
+      <div class="kpi-value">{{ analytics.local_pct }}%</div>
+      <div class="kpi-delta text-muted">{{ analytics.domestic_pct }}% dom · {{ analytics.foreign_pct }}% intl</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header fw-semibold d-flex align-items-center gap-2">
+        <span class="ua-icon text-primary" data-ua="file-text" data-ua-interaction="hover-replay" data-ua-size="20"></span>Historical Overview &amp; Conservation Notes
+      </div>
+      <div class="card-body">
+        <p class="mb-4" style="white-space: pre-line;">{{ site.historical_overview }}</p>
+
+        <h2 class="h6 text-uppercase mono-tag text-muted mb-2">Conservation Designations &amp; Visitor Attributes</h2>
+        <div class="d-flex flex-wrap gap-2">
+          {% for tag in site.preservation_tags.all %}
+            <span class="wi-tag-badge">
+              <i class="bi bi-patch-check-fill me-1" aria-hidden="true"></i>{{ tag.name }}
+            </span>
+          {% empty %}
+            <span class="text-muted small">No additional conservation tags assigned yet.</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-semibold d-flex align-items-center gap-2">
+        <span class="ua-icon text-primary" data-ua="explore" data-ua-interaction="hover" data-ua-size="20"></span>Registry Metadata
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0 wi-meta-list">
+          <dt class="col-5 text-muted small">District</dt>
+          <dd class="col-7 fw-medium">{{ site.district.name }}</dd>
+
+          <dt class="col-5 text-muted small">Municipality</dt>
+          <dd class="col-7">{{ site.municipality }}</dd>
+
+          <dt class="col-5 text-muted small">Coordinates</dt>
+          <dd class="col-7 mono-tag">{{ site.latitude }}°N, {{ site.longitude }}°E</dd>
+
+          <dt class="col-5 text-muted small">Founded</dt>
+          <dd class="col-7 mono-tag">{{ site.established_year }}</dd>
+
+          <dt class="col-5 text-muted small">Daily Capacity</dt>
+          <dd class="col-7 mono-tag">{{ site.daily_capacity }} visitors</dd>
+
+          <dt class="col-5 text-muted small">Admission Fee</dt>
+          <dd class="col-7 mono-tag">{% if site.entry_fee > 0 %}PHP {{ site.entry_fee }}{% else %}Free Public Entry{% endif %}</dd>
+
+          <dt class="col-5 text-muted small">Custodian</dt>
+          <dd class="col-7">{{ site.custodian_organization|default:"—" }}</dd>
+
+          <dt class="col-5 text-muted small">Registered By</dt>
+          <dd class="col-7">
+            {{ site.created_by.get_full_name|default:site.created_by.username }}
+            <span class="badge role-badge role-{{ site.created_by.role|lower }} ms-1">{{ site.created_by.get_role_display }}</span>
+          </dd>
+
+          <dt class="col-5 text-muted small mb-0">Last Updated</dt>
+          <dd class="col-7 mono-tag mb-0">{{ site.updated_at|date:"M j, Y · H:i" }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold d-inline-flex align-items-center gap-2">
+          <span class="ua-icon text-primary" data-ua="trending-up" data-ua-interaction="hover-replay" data-ua-size="20"></span>Landmark Foot-Traffic Trend
+        </span>
+        <span class="mono-tag text-muted">{% if analytics.has_chart_data %}Live PostgreSQL Series{% else %}Awaiting First Entry{% endif %}</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-box">
+          <canvas id="wi-visitation-chart" data-labels='{{ analytics.trend_labels_json }}' data-values='{{ analytics.trend_values_json }}'></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-semibold d-flex align-items-center gap-2">
+        <span class="ua-icon text-primary" data-ua="pie-chart" data-ua-interaction="hover-replay" data-ua-size="20"></span>Demographic Origin Split (BR-01)
+      </div>
+      <div class="card-body">
+        <div class="chart-box">
+          <canvas id="wi-demographic-chart" data-origin-values='{{ analytics.origin_values_json }}'></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span id="site-logs-caption" class="fw-semibold d-inline-flex align-items-center gap-2">
+      <span class="ua-icon text-primary" data-ua="calendar" data-ua-interaction="hover" data-ua-size="20"></span>Recent Daily Visitation Logs
+    </span>
+    {% if can_manage %}
+      <a href="{% url 'heritage:site_log_create' site.slug %}" class="btn btn-primary btn-sm d-inline-flex align-items-center gap-1">
+        <span class="ua-icon" data-ua="plus-circle" data-ua-interaction="click-replay" data-ua-size="16"></span>Record Visitation Log
+      </a>
+    {% endif %}
+  </div>
+  <div class="table-responsive" role="region" aria-labelledby="site-logs-caption" tabindex="0">
+    <table class="table table-hover mb-0 align-middle wi-data-table">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col" class="text-end">Local</th>
+          <th scope="col" class="text-end">Domestic</th>
+          <th scope="col" class="text-end">Foreign</th>
+          <th scope="col" class="text-end">Total Visitors</th>
+          <th scope="col">Weather</th>
+          <th scope="col">Context / Event</th>
+          {% if can_manage %}<th scope="col" class="text-end">Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in recent_logs %}
+        <tr>
+          <th scope="row" class="mono-tag fw-semibold">{{ log.visit_date|date:"Y-m-d" }}</th>
+          <td class="text-end mono-tag">{{ log.local_visitors }}</td>
+          <td class="text-end mono-tag">{{ log.domestic_visitors }}</td>
+          <td class="text-end mono-tag">{{ log.foreign_visitors }}</td>
+          <td class="text-end mono-tag fw-bold text-primary">{{ log.total_visitors }}</td>
+          <td><span class="wi-category-chip">{{ log.get_weather_condition_display }}</span></td>
+          <td class="small text-muted">{{ log.special_event|default:log.remarks|truncatechars:55|default:"—" }}</td>
+          {% if can_manage %}
+          <td class="text-end">
+            {% if log.user_can_manage %}
+            <div class="d-inline-flex gap-1">
+              <a href="{% url 'heritage:log_update' log.pk %}" class="btn btn-outline-secondary btn-sm">Edit</a>
+              <a href="{% url 'heritage:log_delete' log.pk %}" class="btn btn-outline-danger btn-sm">Delete</a>
+            </div>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="{% if can_manage %}8{% else %}7{% endif %}" class="text-center text-muted py-4">
+            No daily visitation logs recorded for this landmark yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

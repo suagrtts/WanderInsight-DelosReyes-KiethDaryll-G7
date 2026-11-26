@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Heritage Site Registry{% endblock %}
+{% block content %}
+<div class="dash-hero {% if user.is_admin_role %}dash-admin{% elif user.is_curator %}dash-curator{% else %}dash-viewer{% endif %} mb-4">
+  <div class="dash-hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+    <div>
+      <span class="mono-tag d-inline-flex align-items-center gap-1" style="color: var(--wi-gold);">
+        <span class="ua-icon" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="16"></span>
+        {% if user.is_admin_role %}GOVERNANCE REGISTRY · ALL LANDMARKS{% elif user.is_curator and scope == 'mine' %}CURATOR WORKSPACE · MY MANAGED LANDMARKS{% else %}PUBLIC HERITAGE CATALOG · CEBU CORRIDOR{% endif %}
+      </span>
+      <h1 class="mt-1 mb-1">
+        {% if user.is_curator and scope == 'mine' %}My Heritage Sites{% elif user.is_admin_role %}Cebu Heritage Site Registry{% else %}Explore Cebu Heritage Landmarks{% endif %}
+      </h1>
+      <p class="mb-0 dash-hero-subtitle">
+        {% if user.is_curator and scope == 'mine' %}
+          Create, inspect, update, and manage conservation records for landmarks under your custodianship.
+        {% elif user.is_admin_role %}
+          System-wide landmark directory across all Cebu heritage districts and assigned Curators.
+        {% else %}
+          Browse verified cultural heritage landmarks, preservation classifications, and visitor capacity across Cebu.
+        {% endif %}
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      {% if user.is_curator or user.is_admin_role %}
+        <a href="{% url 'heritage:site_create' %}" class="btn btn-primary d-inline-flex align-items-center gap-2">
+          <span class="ua-icon" data-ua="plus-circle" data-ua-interaction="click-replay" data-ua-size="18"></span>Register Heritage Site
+        </a>
+      {% endif %}
+      {% if user.is_admin_role %}
+        <a href="{% url 'heritage:taxonomy_manage' %}" class="btn btn-outline-light d-inline-flex align-items-center gap-2">
+          <span class="ua-icon" data-ua="layers" data-ua-interaction="hover-replay" data-ua-size="18"></span>Districts &amp; Categories
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if user.is_curator or user.is_admin_role %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div class="wi-scope-tabs" role="navigation" aria-label="Registry scope">
+    {% if user.is_curator %}
+      <a href="{% url 'heritage:site_list' %}?scope=mine" class="wi-scope-tab {% if scope == 'mine' %}active{% endif %}">
+        My Managed Sites <span class="wi-count-pill">{{ my_site_count }}</span>
+      </a>
+      <a href="{% url 'heritage:site_list' %}?scope=catalog" class="wi-scope-tab {% if scope == 'catalog' %}active{% endif %}">
+        All Published Sites <span class="wi-count-pill">{{ published_site_count }}</span>
+      </a>
+    {% elif user.is_admin_role %}
+      <a href="{% url 'heritage:site_list' %}?scope=all" class="wi-scope-tab {% if scope == 'all' %}active{% endif %}">
+        All Registered Sites <span class="wi-count-pill">{{ total_site_count }}</span>
+      </a>
+      <a href="{% url 'heritage:site_list' %}?scope=mine" class="wi-scope-tab {% if scope == 'mine' %}active{% endif %}">
+        Created by Me <span class="wi-count-pill">{{ my_site_count }}</span>
+      </a>
+    {% endif %}
+  </div>
+  <span class="mono-tag text-muted">Showing {{ sites|length }} landmark{{ sites|length|pluralize }}</span>
+</div>
+{% endif %}
+
+<div class="card mb-4">
+  <div class="card-body">
+    <search aria-label="Filter heritage landmarks">
+      <form method="get" action="{% url 'heritage:site_list' %}" class="row g-3 align-items-end">
+        <input type="hidden" name="scope" value="{{ scope }}">
+        <div class="col-12 col-lg-4">
+          <label class="form-label" for="id_q">Search Landmarks</label>
+          <input type="search" id="id_q" name="q" value="{{ q }}" class="form-control" placeholder="Search name, municipality, or custodian..." autocorrect="off" spellcheck="false">
+        </div>
+        <div class="col-12 col-sm-4 col-lg-3">
+          <label class="form-label" for="id_district">District</label>
+          <select id="id_district" name="district" class="form-select">
+            <option value="">All Districts</option>
+            {% for d in districts %}
+              <option value="{{ d.id }}" {% if selected_district == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-sm-4 col-lg-3">
+          <label class="form-label" for="id_category">Category</label>
+          <select id="id_category" name="category" class="form-select">
+            <option value="">All Categories</option>
+            {% for c in categories %}
+              <option value="{{ c.id }}" {% if selected_category == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-sm-4 col-lg-2">
+          <label class="form-label" for="id_status">Preservation</label>
+          <select id="id_status" name="status" class="form-select">
+            <option value="">Any Status</option>
+            {% for val, label in status_choices %}
+              <option value="{{ val }}" {% if selected_status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 d-flex flex-wrap gap-2 justify-content-end">
+          {% if q or selected_district or selected_category or selected_status %}
+            <a href="{% url 'heritage:site_list' %}?scope={{ scope }}" class="btn btn-outline-secondary btn-sm">Clear Filters</a>
+          {% endif %}
+          <button type="submit" class="btn btn-primary btn-sm px-4">Apply Filters</button>
+        </div>
+      </form>
+    </search>
+  </div>
+</div>
+
+{% if sites %}
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span id="sites-table-caption" class="fw-semibold d-inline-flex align-items-center gap-2">
+      <span class="ua-icon text-primary" data-ua="database" data-ua-interaction="hover-replay" data-ua-size="20"></span>Registered Cultural Heritage Landmarks
+    </span>
+    <span class="mono-tag text-muted">{{ sites|length }} record{{ sites|length|pluralize }}</span>
+  </div>
+  <div class="table-responsive" role="region" aria-labelledby="sites-table-caption" tabindex="0">
+    <table class="table table-hover mb-0 align-middle wi-data-table">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Landmark</th>
+          <th scope="col">District &amp; Municipality</th>
+          <th scope="col">Category</th>
+          <th scope="col">Est.</th>
+          <th scope="col">Preservation Status</th>
+          <th scope="col" class="text-end">Visitors</th>
+          <th scope="col">Curator</th>
+          <th scope="col" class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for site in sites %}
+        <tr>
+          <th scope="row" class="fw-semibold">
+            <a href="{% url 'heritage:site_detail' site.slug %}" class="wi-site-link">{{ site.name }}</a>
+            {% if not site.is_published %}
+              <span class="badge text-bg-secondary ms-1 mono-tag">Draft</span>
+            {% endif %}
+            <div class="small text-muted fw-normal mono-tag mt-1">{{ site.latitude }}°N, {{ site.longitude }}°E</div>
+          </th>
+          <td>
+            <div class="fw-medium">{{ site.district.name }}</div>
+            <div class="small text-muted">{{ site.municipality }}</div>
+          </td>
+          <td><span class="wi-category-chip">{{ site.category.name }}</span></td>
+          <td class="mono-tag">{{ site.established_year }}</td>
+          <td>
+            <span class="wi-status-pill wi-status-{{ site.preservation_status|lower }}">
+              {{ site.get_preservation_status_display }}
+            </span>
+          </td>
+          <td class="text-end mono-tag fw-semibold">{{ site.all_time_visitors }}</td>
+          <td class="small">
+            {{ site.created_by.get_full_name|default:site.created_by.username }}
+          </td>
+          <td class="text-end">
+            <div class="d-inline-flex gap-1">
+              <a href="{% url 'heritage:site_detail' site.slug %}" class="btn btn-outline-primary btn-sm">View</a>
+              {% if site.user_can_manage %}
+                <a href="{% url 'heritage:site_log_create' site.slug %}" class="btn btn-primary btn-sm">+ Log</a>
+                <a href="{% url 'heritage:site_update' site.slug %}" class="btn btn-outline-secondary btn-sm">Edit</a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body py-5 text-center">
+    <span class="ua-icon text-primary mb-2" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="36"></span>
+    <h2 class="h4 mt-2">No heritage landmarks matched your view</h2>
+    <p class="text-muted mx-auto mb-3" style="max-width: 48ch;">
+      {% if user.is_curator and scope == 'mine' %}
+        You have not registered any heritage sites yet, or none matched the active search filters.
+      {% else %}
+        Try clearing one or more filters to view all published landmarks in the Cebu Heritage Corridor.
+      {% endif %}
+    </p>
+    <div class="d-flex justify-content-center gap-2">
+      {% if q or selected_district or selected_category or selected_status %}
+        <a href="{% url 'heritage:site_list' %}?scope={{ scope }}" class="btn btn-outline-secondary">Reset Filters</a>
+      {% endif %}
+      {% if user.is_curator or user.is_admin_role %}
+        <a href="{% url 'heritage:site_create' %}" class="btn btn-primary">Register Heritage Site</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

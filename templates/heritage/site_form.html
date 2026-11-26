@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}{% if is_edit %}Edit {{ site.name }}{% else %}Register Heritage Site{% endif %}{% endblock %}
+{% block content %}
+<nav aria-label="Breadcrumb" class="mb-3">
+  <ol class="breadcrumb mb-0 small">
+    <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'heritage:site_list' %}">Heritage Sites</a></li>
+    {% if is_edit %}
+      <li class="breadcrumb-item"><a href="{% url 'heritage:site_detail' site.slug %}">{{ site.name }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Edit</li>
+    {% else %}
+      <li class="breadcrumb-item active" aria-current="page">Register New Site</li>
+    {% endif %}
+  </ol>
+</nav>
+
+<div class="row justify-content-center">
+  <div class="col-xl-10">
+    <div class="card">
+      <div class="card-header d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 py-3">
+        <div>
+          <span class="mono-tag text-primary">{% if is_edit %}UPDATE LANDMARK RECORD · F-02{% else %}NEW LANDMARK RECORD · F-02{% endif %}</span>
+          <h1 class="h3 mb-0 mt-1">{% if is_edit %}Edit {{ site.name }}{% else %}Register Cultural Heritage Site{% endif %}</h1>
+        </div>
+        <span class="small text-muted">Fields marked <span class="text-danger">*</span> are required</span>
+      </div>
+      <div class="card-body p-4">
+        {% if form.errors %}
+        <div class="alert alert-danger mb-4" role="alert" tabindex="-1">
+          <div class="fw-semibold mb-1">Unable to save heritage site — please review the errors below:</div>
+          <ul class="mb-0 small">
+            {% for field in form %}
+              {% for err in field.errors %}
+                <li><strong>{{ field.label }}:</strong> {{ err }}</li>
+              {% endfor %}
+            {% endfor %}
+            {% for err in form.non_field_errors %}
+              <li>{{ err }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% if is_edit %}{% url 'heritage:site_update' site.slug %}{% else %}{% url 'heritage:site_create' %}{% endif %}" novalidate>
+          {% csrf_token %}
+
+          <fieldset class="wi-fieldset mb-4">
+            <legend class="wi-legend">Landmark Classification &amp; Location</legend>
+            <div class="row g-3">
+              <div class="col-md-8">
+                {% include "partials/field.html" with field=form.name %}
+              </div>
+              <div class="col-md-4">
+                {% include "partials/field.html" with field=form.established_year %}
+              </div>
+              <div class="col-md-4">
+                {% include "partials/field.html" with field=form.district %}
+              </div>
+              <div class="col-md-4">
+                {% include "partials/field.html" with field=form.category %}
+              </div>
+              <div class="col-md-4">
+                {% include "partials/field.html" with field=form.municipality %}
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="wi-fieldset mb-4">
+            <legend class="wi-legend">Geospatial Telemetry &amp; Conservation Capacity</legend>
+            <div class="row g-3">
+              <div class="col-sm-6 col-md-3">
+                {% include "partials/field.html" with field=form.latitude %}
+              </div>
+              <div class="col-sm-6 col-md-3">
+                {% include "partials/field.html" with field=form.longitude %}
+              </div>
+              <div class="col-sm-6 col-md-3">
+                {% include "partials/field.html" with field=form.daily_capacity %}
+              </div>
+              <div class="col-sm-6 col-md-3">
+                {% include "partials/field.html" with field=form.entry_fee %}
+              </div>
+              <div class="col-md-6">
+                {% include "partials/field.html" with field=form.preservation_status %}
+              </div>
+              <div class="col-md-6">
+                {% include "partials/field.html" with field=form.custodian_organization %}
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="wi-fieldset mb-4">
+            <legend class="wi-legend">Conservation Designations &amp; Historical Narrative</legend>
+            <div class="mb-3">
+              <span class="form-label d-block">{{ form.preservation_tags.label }}</span>
+              {% if form.preservation_tags.help_text %}
+                <div class="form-text mb-2">{{ form.preservation_tags.help_text }}</div>
+              {% endif %}
+              <div class="row g-2">
+                {% for checkbox in form.preservation_tags %}
+                  <div class="col-sm-6 col-lg-4">
+                    <label class="wi-check-card" for="{{ checkbox.id_for_label }}">
+                      {{ checkbox.tag }}
+                      <span>{{ checkbox.choice_label }}</span>
+                    </label>
+                  </div>
+                {% empty %}
+                  <div class="col-12 text-muted small">No conservation tags configured yet.</div>
+                {% endfor %}
+              </div>
+              {% for err in form.preservation_tags.errors %}
+                <div class="invalid-feedback d-block">{{ err }}</div>
+              {% endfor %}
+            </div>
+
+            {% include "partials/field.html" with field=form.historical_overview %}
+
+            <div class="form-check wi-publish-check mt-3">
+              {{ form.is_published }}
+              <label class="form-check-label fw-medium ms-1" for="{{ form.is_published.id_for_label }}">
+                {{ form.is_published.label }}
+              </label>
+              {% if form.is_published.help_text %}
+                <div class="form-text">{{ form.is_published.help_text }}</div>
+              {% endif %}
+            </div>
+          </fieldset>
+
+          <div class="d-flex flex-wrap justify-content-end gap-2 pt-2 border-top">
+            <a href="{% if is_edit %}{% url 'heritage:site_detail' site.slug %}{% else %}{% url 'heritage:site_list' %}{% endif %}" class="btn btn-outline-secondary">
+              Cancel
+            </a>
+            <button type="submit" class="btn btn-primary px-4">
+              {% if is_edit %}Save Landmark Changes{% else %}Register Heritage Site{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

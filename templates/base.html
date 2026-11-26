@@ -16,7 +16,7 @@
   <div id="wi-bg-canvas" class="wi-bg-canvas" aria-hidden="true"></div>
   <div class="wi-cursor-spotlight" aria-hidden="true"></div>
 
-  <nav class="navbar navbar-expand-lg navbar-dark wi-navbar sticky-top">
+  <nav class="navbar navbar-expand-xl navbar-dark wi-navbar sticky-top">
     <div class="container">
       <a class="navbar-brand d-flex align-items-center" href="{% url 'accounts:dashboard' %}">
         <span class="ua-icon me-2" data-ua="globe" data-ua-interaction="hover-loop" data-ua-size="26" style="color: var(--wi-gold);"></span>WanderInsight
@@ -26,22 +26,22 @@
         <span class="ua-icon text-white" data-ua="menu-v2" data-ua-interaction="click-toggle" data-ua-size="28"></span>
       </button>
       <div class="collapse navbar-collapse" id="mainNav">
-        <ul class="navbar-nav me-auto ms-lg-3">
+        <ul class="navbar-nav me-auto ms-xl-2">
           {% if user.is_authenticated %}
             {% block role_nav %}
-            <li class="nav-item"><a class="nav-link d-inline-flex align-items-center gap-1" href="{% url 'accounts:dashboard' %}"><span class="ua-icon" data-ua="home" data-ua-interaction="hover" data-ua-size="18"></span>Dashboard</a></li>
+            {% include "partials/role_nav.html" %}
             {% endblock %}
           {% endif %}
         </ul>
-        <ul class="navbar-nav align-items-lg-center">
-          <li class="nav-item d-none d-xl-flex align-items-center me-3">
+        <ul class="navbar-nav align-items-xl-center">
+          <li class="nav-item d-none d-xxl-flex align-items-center me-2">
             <span class="wi-telemetry-pill ua-trigger" title="Move or click anywhere on the background to send a geospatial wave">
               <span class="ua-icon" data-ua="activity" data-ua-interaction="loop" data-ua-size="16" style="color: #4ADE80;"></span>
               <span id="wi-coords-live">10.2935°N, 123.9018°E</span>
             </span>
           </li>
           {% if user.is_authenticated %}
-            <li class="nav-item me-lg-2"><span class="badge role-badge role-{{ user.role|lower }}">{{ user.get_role_display }}</span></li>
+            <li class="nav-item me-xl-2"><span class="badge role-badge role-{{ user.role|lower }}">{{ user.get_role_display }}</span></li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 {% if user.profile_photo %}<img src="{{ user.profile_photo.url }}" class="avatar-sm me-2" alt="">{% else %}<span class="ua-icon me-2" data-ua="user" data-ua-interaction="hover-replay" data-ua-size="20"></span>{% endif %}

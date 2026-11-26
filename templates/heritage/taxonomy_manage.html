@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Districts &amp; Categories Governance{% endblock %}
+{% block content %}
+<div class="dash-hero dash-admin mb-4">
+  <div class="dash-hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+    <div>
+      <span class="mono-tag" style="color: var(--wi-gold);">ADMINISTRATOR GOVERNANCE · TAXONOMY REFERENCE TABLES</span>
+      <h1 class="mt-1 mb-1">Districts &amp; Heritage Categories</h1>
+      <p class="mb-0 dash-hero-subtitle">Manage normalized geographic corridors and landmark classifications used across the Heritage Site Registry.</p>
+    </div>
+    <a href="{% url 'heritage:site_list' %}" class="btn btn-outline-light d-inline-flex align-items-center gap-2">
+      <span class="ua-icon" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="18"></span>Back to Registry
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card mb-4">
+      <div class="card-header fw-semibold">Add Cebu Heritage District</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'heritage:taxonomy_manage' %}" aria-label="Add district" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="form_kind" value="district">
+          {% include "partials/field.html" with field=district_form.name %}
+          {% include "partials/field.html" with field=district_form.zone %}
+          {% include "partials/field.html" with field=district_form.description %}
+          <button type="submit" class="btn btn-primary btn-sm px-4">Add District</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span id="districts-table-title">Registered Districts</span>
+        <span class="mono-tag text-muted">{{ districts|length }}</span>
+      </div>
+      <div class="table-responsive" role="region" aria-labelledby="districts-table-title" tabindex="0">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr><th scope="col">District</th><th scope="col">Corridor Zone</th><th scope="col" class="text-end">Sites</th></tr>
+          </thead>
+          <tbody>
+            {% for d in districts %}
+              <tr>
+                <th scope="row" class="fw-medium">{{ d.name }}</th>
+                <td class="small text-muted">{{ d.get_zone_display }}</td>
+                <td class="text-end mono-tag">{{ d.site_count }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" class="text-center text-muted py-3">No districts created yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card mb-4">
+      <div class="card-header fw-semibold">Add Heritage Category</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'heritage:taxonomy_manage' %}" aria-label="Add category" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="form_kind" value="category">
+          <div class="row g-3">
+            <div class="col-sm-5">{% include "partials/field.html" with field=category_form.code %}</div>
+            <div class="col-sm-7">{% include "partials/field.html" with field=category_form.name %}</div>
+          </div>
+          {% include "partials/field.html" with field=category_form.description %}
+          <button type="submit" class="btn btn-primary btn-sm px-4">Add Category</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+        <span id="categories-table-title">Registered Categories</span>
+        <span class="mono-tag text-muted">{{ categories|length }}</span>
+      </div>
+      <div class="table-responsive" role="region" aria-labelledby="categories-table-title" tabindex="0">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr><th scope="col">Category</th><th scope="col">Code</th><th scope="col" class="text-end">Sites</th></tr>
+          </thead>
+          <tbody>
+            {% for c in categories %}
+              <tr>
+                <th scope="row" class="fw-medium">{{ c.name }}</th>
+                <td class="mono-tag text-muted">{{ c.code }}</td>
+                <td class="text-end mono-tag">{{ c.site_count }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" class="text-center text-muted py-3">No categories created yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
