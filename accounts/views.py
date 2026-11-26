@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.views import LoginView
+from django.core.cache import cache
 from django.db.models import Count, Sum
 from django.db.models.functions import Coalesce
 from django.shortcuts import redirect, render
@@ -43,8 +44,27 @@ class UserLoginView(LoginView):
     template_name = "accounts/login.html"
     authentication_form = LoginForm
     redirect_authenticated_user = True
+    MAX_FAILED_ATTEMPTS = 10
+    LOCKOUT_SECONDS = 300
+
+    def _throttle_key(self, request):
+        ip = (request.META.get("REMOTE_ADDR") or "unknown").strip()
+        username = (request.POST.get("username") or "").strip().lower()
+        return f"wi_login_fail:{ip}:{username}"
+
+    def post(self, request, *args, **kwargs):
+        key = self._throttle_key(request)
+        if cache.get(key, 0) >= self.MAX_FAILED_ATTEMPTS:
+            messages.error(
+                request,
+                "Too many failed login attempts. Please wait 5 minutes before trying again.",
+            )
+            form = self.get_form()
+            return self.render_to_response(self.get_context_data(form=form), status=429)
+        return super().post(request, *args, **kwargs)
 
     def form_valid(self, form):
+        cache.delete(self._throttle_key(self.request))
         messages.success(
             self.request,
             f"Welcome back, {form.get_user().get_short_name() or form.get_user().username}!",
@@ -52,6 +72,9 @@ class UserLoginView(LoginView):
         return super().form_valid(form)
 
     def form_invalid(self, form):
+        key = self._throttle_key(self.request)
+        attempts = cache.get(key, 0) + 1
+        cache.set(key, attempts, self.LOCKOUT_SECONDS)
         messages.error(self.request, "Login failed. Invalid username or password.")
         return super().form_invalid(form)
 

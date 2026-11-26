@@ -1,8 +1,10 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.dateparse import parse_date
 
 from accounts.decorators import role_required
 from accounts.models import User
@@ -62,12 +64,19 @@ def site_list(request):
     if status in dict(HeritageSite.PreservationStatus.choices):
         sites_qs = sites_qs.filter(preservation_status=status)
 
-    sites = list(sites_qs)
+    paginator = Paginator(sites_qs.order_by("name", "id"), 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    sites = list(page_obj.object_list)
     for site in sites:
         site.user_can_manage = site.can_manage(user)
 
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
+
     context = {
         "sites": sites,
+        "page_obj": page_obj,
+        "querystring": query_params.urlencode(),
         "scope": scope,
         "q": q,
         "selected_district": district_id,
@@ -101,7 +110,8 @@ def site_detail(request, slug):
 
     logs_qs = site.visitation_logs.select_related("recorded_by").all()
     analytics = build_visitation_analytics(logs_qs)
-    recent_logs = list(logs_qs[:15])
+    logs_page = Paginator(logs_qs, 15).get_page(request.GET.get("page"))
+    recent_logs = list(logs_page.object_list)
     for log in recent_logs:
         log.user_can_manage = log.can_manage(request.user)
 
@@ -110,6 +120,7 @@ def site_detail(request, slug):
         "can_manage": can_manage,
         "analytics": analytics,
         "recent_logs": recent_logs,
+        "page_obj": logs_page,
     }
     return render(request, "heritage/site_detail.html", context)
 
@@ -214,21 +225,42 @@ def log_list(request):
         logs_qs = logs_qs.filter(site_id=int(site_id))
     if weather in dict(VisitationLog.WeatherCondition.choices):
         logs_qs = logs_qs.filter(weather_condition=weather)
+
+    parsed_from = None
+    parsed_to = None
     if date_from:
-        logs_qs = logs_qs.filter(visit_date__gte=date_from)
+        parsed_from = parse_date(date_from)
+        if parsed_from is None:
+            messages.warning(request, "Invalid 'From Date' filter ignored. Use YYYY-MM-DD format.")
+            date_from = ""
+        else:
+            logs_qs = logs_qs.filter(visit_date__gte=parsed_from)
     if date_to:
-        logs_qs = logs_qs.filter(visit_date__lte=date_to)
+        parsed_to = parse_date(date_to)
+        if parsed_to is None:
+            messages.warning(request, "Invalid 'To Date' filter ignored. Use YYYY-MM-DD format.")
+            date_to = ""
+        else:
+            logs_qs = logs_qs.filter(visit_date__lte=parsed_to)
+    if parsed_from and parsed_to and parsed_from > parsed_to:
+        messages.warning(request, "Start date cannot be later than end date.")
 
     analytics = build_visitation_analytics(logs_qs)
-    logs = list(logs_qs[:60])
+    page_obj = Paginator(logs_qs, 25).get_page(request.GET.get("page"))
+    logs = list(page_obj.object_list)
     for log in logs:
         log.user_can_manage = log.can_manage(user)
+
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
 
     return render(
         request,
         "heritage/log_list.html",
         {
             "logs": logs,
+            "page_obj": page_obj,
+            "querystring": query_params.urlencode(),
             "analytics": analytics,
             "available_sites": available_sites,
             "weather_choices": VisitationLog.WeatherCondition.choices,
@@ -306,6 +338,12 @@ def log_update(request, pk):
         form = VisitationLogForm(request.POST, instance=log, user=request.user)
         if form.is_valid():
             updated_log = form.save()
+            if updated_log.total_visitors > updated_log.site.daily_capacity:
+                messages.warning(
+                    request,
+                    f'Recorded {updated_log.total_visitors} visitors, exceeding {updated_log.site.name}\'s '
+                    f'recommended daily conservation capacity ({updated_log.site.daily_capacity}).',
+                )
             messages.success(
                 request,
                 f'Visitation log for "{updated_log.site.name}" ({updated_log.visit_date:%b %d, %Y}) updated.',

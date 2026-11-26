@@ -192,9 +192,24 @@
     }
   }
 
+  function initDoubleSubmitGuard() {
+    document.querySelectorAll('main form[method="post"]').forEach(function (form) {
+      form.addEventListener("submit", function () {
+        if (form.dataset.wiSubmitting === "1") return;
+        form.dataset.wiSubmitting = "1";
+        const btn = form.querySelector('button[type="submit"]');
+        if (btn) {
+          btn.disabled = true;
+          btn.setAttribute("aria-busy", "true");
+        }
+      });
+    });
+  }
+
   function boot() {
     initCharts();
     initVisitationSumHelper();
+    initDoubleSubmitGuard();
   }
 
   if (document.readyState === "loading") {

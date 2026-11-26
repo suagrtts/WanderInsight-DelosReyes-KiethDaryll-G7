@@ -184,3 +184,41 @@ class AdminPortalStylingTests(TestCase):
         self.assertContains(resp, "role-badge role-curator")
         self.assertContains(resp, "role-badge role-viewer")
 
+
+
+class AuditHardeningTests(TestCase):
+    def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()
+        self.user = make_user("throttle_user", User.Role.VIEWER)
+
+    def test_login_rate_limits_after_repeated_failures(self):
+        url = reverse("accounts:login")
+        for _ in range(10):
+            resp = self.client.post(url, {"username": "throttle_user", "password": "wrong"})
+            self.assertEqual(resp.status_code, 200)
+        blocked = self.client.post(url, {"username": "throttle_user", "password": "wrong"})
+        self.assertEqual(blocked.status_code, 429)
+        self.assertContains(blocked, "Too many failed login attempts", status_code=429)
+
+    def test_profile_photo_rejects_oversized_upload(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        self.client.force_login(self.user)
+        big_file = SimpleUploadedFile(
+            "huge.jpg",
+            b"x" * (2 * 1024 * 1024 + 10),
+            content_type="image/jpeg",
+        )
+        resp = self.client.post(
+            reverse("accounts:profile_edit"),
+            {
+                "first_name": "Elena",
+                "last_name": "V",
+                "email": "throttle_user@example.com",
+                "profile_photo": big_file,
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.context["form"].errors.get("profile_photo"))
