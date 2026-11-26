@@ -206,10 +206,44 @@
     });
   }
 
+  function initRotatingLandmarkPhotos() {
+    const imgs = document.querySelectorAll("img[data-gallery]");
+    if (!imgs.length) return;
+
+    imgs.forEach(function (img) {
+      const urls = parseJsonAttr(img, "data-gallery");
+      if (!urls || urls.length < 2) return;
+
+      const key = "wi_img_idx_" + (img.getAttribute("data-gallery-key") || "site");
+      let nextIdx = 0;
+      try {
+        const stored = window.sessionStorage.getItem(key);
+        if (stored !== null && !Number.isNaN(parseInt(stored, 10))) {
+          nextIdx = (parseInt(stored, 10) + 1) % urls.length;
+        } else {
+          nextIdx = Math.floor(Math.random() * urls.length);
+        }
+        window.sessionStorage.setItem(key, String(nextIdx));
+      } catch (_err) {
+        nextIdx = Math.floor(Math.random() * urls.length);
+      }
+
+      img.src = urls[nextIdx];
+      if (img.classList.contains("wi-landmark-photo")) {
+        const counter = document.getElementById("wi-photo-counter");
+        if (counter) {
+          counter.textContent =
+            "Photo " + (nextIdx + 1) + " of " + urls.length + " · Refresh for new view";
+        }
+      }
+    });
+  }
+
   function boot() {
     initCharts();
     initVisitationSumHelper();
     initDoubleSubmitGuard();
+    initRotatingLandmarkPhotos();
   }
 
   if (document.readyState === "loading") {

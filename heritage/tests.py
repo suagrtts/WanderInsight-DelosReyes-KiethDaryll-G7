@@ -487,7 +487,8 @@ class VisitationLogVerticalSliceTests(TestCase):
 
         self.site_a.image_url = "https://upload.wikimedia.org/wikipedia/commons/sample.jpg"
         self.site_a.save()
-        self.assertEqual(
-            self.site_a.resolved_image_url,
+        self.assertIn(
             "https://upload.wikimedia.org/wikipedia/commons/sample.jpg",
+            self.site_a.gallery_image_urls,
         )
+        self.assertIn(self.site_a.resolved_image_url, self.site_a.gallery_image_urls)
