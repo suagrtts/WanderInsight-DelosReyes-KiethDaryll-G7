@@ -11,6 +11,11 @@
   </a>
 </li>
 <li class="nav-item">
+  <a class="nav-link {% if ns == 'heritage' and cur in 'log_list,log_create,site_log_create,log_update,log_delete' %}active{% endif %} d-inline-flex align-items-center gap-1" href="{% url 'heritage:log_list' %}">
+    <span class="ua-icon" data-ua="calendar" data-ua-interaction="hover" data-ua-size="18"></span>Visitation Logs
+  </a>
+</li>
+<li class="nav-item">
   <a class="nav-link {% if ns == 'heritage' and cur == 'taxonomy_manage' %}active{% endif %} d-inline-flex align-items-center gap-1" href="{% url 'heritage:taxonomy_manage' %}">
     <span class="ua-icon" data-ua="layers" data-ua-interaction="hover-replay" data-ua-size="18"></span>Districts &amp; Categories
   </a>
@@ -24,6 +29,11 @@
 <li class="nav-item">
   <a class="nav-link {% if ns == 'heritage' and cur in 'site_list,site_detail,site_update,site_delete' %}active{% endif %} d-inline-flex align-items-center gap-1" href="{% url 'heritage:site_list' %}">
     <span class="ua-icon" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="18"></span>My Heritage Sites
+  </a>
+</li>
+<li class="nav-item">
+  <a class="nav-link {% if ns == 'heritage' and cur in 'log_list,log_create,site_log_create,log_update,log_delete' %}active{% endif %} d-inline-flex align-items-center gap-1" href="{% url 'heritage:log_list' %}">
+    <span class="ua-icon" data-ua="calendar" data-ua-interaction="hover" data-ua-size="18"></span>Visitation Logs
   </a>
 </li>
 <li class="nav-item">

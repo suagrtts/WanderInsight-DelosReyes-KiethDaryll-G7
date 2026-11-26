@@ -1,42 +1,72 @@
 {% extends "base.html" %}
 {% block title %}Admin Dashboard{% endblock %}
-{% block role_nav %}
-<li class="nav-item"><a class="nav-link active d-inline-flex align-items-center gap-1" href="{% url 'accounts:admin_dashboard' %}"><span class="ua-icon" data-ua="home" data-ua-interaction="hover" data-ua-size="18"></span>Dashboard</a></li>
-<li class="nav-item"><a class="nav-link d-inline-flex align-items-center gap-1" href="{% url 'admin:accounts_user_changelist' %}"><span class="ua-icon" data-ua="users" data-ua-interaction="hover-replay" data-ua-size="18"></span>Manage Users</a></li>
-<li class="nav-item"><a class="nav-link disabled d-inline-flex align-items-center gap-1" href="#" aria-disabled="true"><span class="ua-icon" data-ua="upload-cloud" data-ua-interaction="click-replay" data-ua-size="18"></span>Batch Ingestion</a></li>
-<li class="nav-item"><a class="nav-link disabled d-inline-flex align-items-center gap-1" href="#" aria-disabled="true"><span class="ua-icon" data-ua="file-text" data-ua-interaction="hover-replay" data-ua-size="18"></span>Audit Logs</a></li>
-{% endblock %}
 {% block content %}
 <div class="dash-hero dash-admin mb-4">
   <div id="wi-three-canvas" class="three-canvas-wrap" style="opacity:0.45;" aria-hidden="true"></div>
-  <div class="dash-hero-content">
-    <span class="mono-tag d-inline-flex align-items-center gap-1" style="color: var(--wi-gold);"><span class="ua-icon" data-ua="shield" data-ua-interaction="hover-replay" data-ua-size="16"></span>ROLE: ADMINISTRATOR · SYSTEM GOVERNANCE</span>
-    <h1 class="mt-1 mb-1 d-flex align-items-center gap-2"><span class="ua-icon" data-ua="settings" data-ua-interaction="hover" data-ua-size="34" style="color: var(--wi-gold);"></span>Administrator Dashboard</h1>
-    <p class="mb-0 dash-hero-subtitle">Welcome, {{ user.get_full_name|default:user.username }}. Oversee users, role permissions (BR-10), and system-wide data operations.</p>
+  <div class="dash-hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+    <div>
+      <span class="mono-tag d-inline-flex align-items-center gap-1" style="color: var(--wi-gold);"><span class="ua-icon" data-ua="shield" data-ua-interaction="hover-replay" data-ua-size="16"></span>ROLE: ADMINISTRATOR · SYSTEM GOVERNANCE</span>
+      <h1 class="mt-1 mb-1 d-flex align-items-center gap-2"><span class="ua-icon" data-ua="settings" data-ua-interaction="hover" data-ua-size="34" style="color: var(--wi-gold);"></span>Administrator Dashboard</h1>
+      <p class="mb-0 dash-hero-subtitle">Welcome, {{ user.get_full_name|default:user.username }}. Oversee users, role permissions (BR-10), heritage landmarks, and system-wide visitor telemetry.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'heritage:site_list' %}" class="btn btn-light d-inline-flex align-items-center gap-2">
+        <span class="ua-icon" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="18"></span>Open Registry
+      </a>
+      <a href="{% url 'heritage:taxonomy_manage' %}" class="btn btn-outline-light d-inline-flex align-items-center gap-2">
+        <span class="ua-icon" data-ua="layers" data-ua-interaction="hover-replay" data-ua-size="18"></span>Taxonomy
+      </a>
+    </div>
   </div>
 </div>
 
 <div class="row g-3 mb-4">
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="d-flex justify-content-between align-items-center"><span class="kpi-label">Total Users</span><span class="ua-icon text-primary" data-ua="users" data-ua-interaction="hover-replay" data-ua-size="22"></span></div><div class="kpi-value">{{ total_users }}</div><div class="kpi-delta text-muted">Active registry</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="d-flex justify-content-between align-items-center"><span class="kpi-label">Administrators</span><span class="ua-icon text-danger" data-ua="shield" data-ua-interaction="hover-replay" data-ua-size="22"></span></div><div class="kpi-value">{{ admin_count }}</div><div class="kpi-delta text-muted">Full governance</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="d-flex justify-content-between align-items-center"><span class="kpi-label">Curators</span><span class="ua-icon text-success" data-ua="edit" data-ua-interaction="hover" data-ua-size="22"></span></div><div class="kpi-value">{{ curator_count }}</div><div class="kpi-delta text-success">Write access (BR-10)</div></div></div></div>
-  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="d-flex justify-content-between align-items-center"><span class="kpi-label">Viewers</span><span class="ua-icon text-info" data-ua="explore" data-ua-interaction="hover" data-ua-size="22"></span></div><div class="kpi-value">{{ viewer_count }}</div><div class="kpi-delta text-muted">Read-only analytics</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="d-flex justify-content-between align-items-center"><span class="kpi-label">Total Users</span><span class="ua-icon text-primary" data-ua="users" data-ua-interaction="hover-replay" data-ua-size="22"></span></div><div class="kpi-value">{{ total_users }}</div><div class="kpi-delta text-muted">{{ admin_count }} admin · {{ curator_count }} curator · {{ viewer_count }} viewer</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="d-flex justify-content-between align-items-center"><span class="kpi-label">Registered Sites</span><span class="ua-icon text-success" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="22"></span></div><div class="kpi-value">{{ total_sites }}</div><div class="kpi-delta text-success">Active Cebu landmarks</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="d-flex justify-content-between align-items-center"><span class="kpi-label">Visitation Logs</span><span class="ua-icon text-primary" data-ua="calendar" data-ua-interaction="hover" data-ua-size="22"></span></div><div class="kpi-value">{{ analytics.log_count }}</div><div class="kpi-delta text-muted">Daily unique (BR-04)</div></div></div></div>
+  <div class="col-6 col-md-3"><div class="card kpi-card"><div class="card-body"><div class="d-flex justify-content-between align-items-center"><span class="kpi-label">All-Time Visitors</span><span class="ua-icon text-info" data-ua="trending-up" data-ua-interaction="hover-replay" data-ua-size="22"></span></div><div class="kpi-value">{{ analytics.total_visitors }}</div><div class="kpi-delta text-muted">SQL SUM() across sites</div></div></div></div>
 </div>
 
 <div class="row g-3 mb-4">
   <div class="col-lg-8">
     <div class="card h-100">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <span class="fw-semibold d-inline-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="database" data-ua-interaction="hover-replay" data-ua-size="20"></span>Recently Registered Users</span>
+        <span class="fw-semibold d-inline-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="trending-up" data-ua-interaction="hover-replay" data-ua-size="20"></span>System-Wide Visitation Trend</span>
+        <span class="mono-tag text-muted">{% if analytics.has_chart_data %}Live PostgreSQL Series{% else %}Sample Baseline{% endif %}</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-box">
+          <canvas id="wi-visitation-chart" data-labels='{{ analytics.trend_labels_json }}' data-values='{{ analytics.trend_values_json }}'></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header fw-semibold d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="pie-chart" data-ua-interaction="hover-replay" data-ua-size="20"></span>Visitor Origin Split (BR-01)</div>
+      <div class="card-body">
+        <div class="chart-box">
+          <canvas id="wi-demographic-chart" data-origin-values='{{ analytics.origin_values_json }}'></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span id="admin-users-caption" class="fw-semibold d-inline-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="database" data-ua-interaction="hover-replay" data-ua-size="20"></span>Recently Registered Users</span>
         <a href="{% url 'admin:accounts_user_changelist' %}" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1"><span class="ua-icon" data-ua="external-link" data-ua-interaction="hover-replay" data-ua-size="16"></span>Open User Manager</a>
       </div>
-      <div class="table-responsive">
+      <div class="table-responsive" role="region" aria-labelledby="admin-users-caption" tabindex="0">
         <table class="table table-hover mb-0 align-middle">
-          <thead class="table-light"><tr><th>Username</th><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
+          <thead class="table-light"><tr><th scope="col">Username</th><th scope="col">Name</th><th scope="col">Email</th><th scope="col">Role</th><th scope="col">Joined</th></tr></thead>
           <tbody>
             {% for u in recent_users %}
             <tr>
-              <td class="fw-medium">{{ u.username }}</td>
+              <th scope="row" class="fw-medium">{{ u.username }}</th>
               <td>{{ u.get_full_name|default:"—" }}</td>
               <td>{{ u.email }}</td>
               <td><span class="badge role-badge role-{{ u.role|lower }}">{{ u.get_role_display }}</span></td>
@@ -52,12 +82,13 @@
   </div>
   <div class="col-lg-4">
     <div class="card h-100">
-      <div class="card-header fw-semibold d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="tool" data-ua-interaction="hover-replay" data-ua-size="20"></span>Admin Tools &amp; Pipelines</div>
+      <div class="card-header fw-semibold d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="tool" data-ua-interaction="hover-replay" data-ua-size="20"></span>Governance Actions</div>
       <div class="list-group list-group-flush">
-        <a href="{% url 'admin:accounts_user_changelist' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="users" data-ua-interaction="hover-replay" data-ua-size="20"></span>Manage users &amp; roles</a>
-        <span class="list-group-item text-muted d-flex align-items-center gap-2"><span class="ua-icon" data-ua="upload-cloud" data-ua-interaction="click-replay" data-ua-size="20"></span>Batch CSV ingestion (F-07) <small>(coming soon)</small></span>
-        <span class="list-group-item text-muted d-flex align-items-center gap-2"><span class="ua-icon" data-ua="file-text" data-ua-interaction="hover-replay" data-ua-size="20"></span>Ingestion audit logs <small>(coming soon)</small></span>
-        <span class="list-group-item text-muted d-flex align-items-center gap-2"><span class="ua-icon" data-ua="layers" data-ua-interaction="hover-replay" data-ua-size="20"></span>Districts &amp; categories <small>(coming soon)</small></span>
+        <a href="{% url 'heritage:site_list' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="map-pin" data-ua-interaction="hover-replay" data-ua-size="20"></span>Manage Heritage Site Registry</a>
+        <a href="{% url 'heritage:site_create' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="plus-circle" data-ua-interaction="click-replay" data-ua-size="20"></span>Register New Heritage Site</a>
+        <a href="{% url 'heritage:log_list' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="calendar" data-ua-interaction="hover" data-ua-size="20"></span>Audit All Visitation Logs</a>
+        <a href="{% url 'heritage:taxonomy_manage' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="layers" data-ua-interaction="hover-replay" data-ua-size="20"></span>Manage Districts &amp; Categories</a>
+        <a href="{% url 'admin:accounts_user_changelist' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-2"><span class="ua-icon text-primary" data-ua="users" data-ua-interaction="hover-replay" data-ua-size="20"></span>Manage Users &amp; Roles</a>
       </div>
     </div>
   </div>
