@@ -188,6 +188,7 @@ table td {
   font-size: 0.9rem;
   font-weight: 500;
   min-height: 44px;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   transition: color var(--wi-duration-snap) ease;
@@ -380,6 +381,9 @@ a:hover { color: var(--wi-primary-hover); text-decoration: underline; }
   background-color: rgba(252, 251, 249, 0.92);
   font-size: 0.92rem;
 }
+.form-select {
+  padding-right: 2.25rem;
+}
 .form-control:focus, .form-select:focus {
   background-color: #FFFFFF;
   border-color: var(--wi-primary);
@@ -452,9 +456,11 @@ a:hover { color: var(--wi-primary-hover); text-decoration: underline; }
   letter-spacing: 0.06em;
 }
 .kpi-value {
-  font-family: var(--font-serif);
-  font-size: 2.2rem;
+  font-family: var(--font-sans);
+  font-size: 2.05rem;
   font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: lining-nums tabular-nums;
   line-height: 1.15;
   color: var(--wi-ink);
 }
@@ -708,4 +714,10 @@ a:hover { color: var(--wi-primary-hover); text-decoration: underline; }
 }
 .wi-site-link:hover {
   color: var(--wi-primary);
+}
+
+.dash-hero .wi-status-pill {
+  background: rgba(255, 255, 255, 0.16);
+  color: #FAF7F0;
+  border-color: rgba(255, 255, 255, 0.35);
 }
