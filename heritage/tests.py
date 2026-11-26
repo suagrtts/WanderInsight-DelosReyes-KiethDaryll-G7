@@ -1,11 +1,14 @@
+from datetime import timedelta
 from decimal import Decimal
 
+from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import User
 
-from .models import District, HeritageCategory, HeritageSite, PreservationTag
+from .models import District, HeritageCategory, HeritageSite, PreservationTag, VisitationLog
 
 
 class HeritageSiteRegistryTests(TestCase):
@@ -199,3 +202,203 @@ class HeritageSiteRegistryTests(TestCase):
         self.assertContains(resp, "already registered")
         self.assertContains(resp, "Cebu province bounds")
         self.assertContains(resp, "at least 30 characters")
+
+
+
+class VisitationLogVerticalSliceTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            username="admin_gov",
+            email="admin@wanderinsight.ph",
+            password="StrongPassword123!",
+            role=User.Role.ADMIN,
+        )
+        self.curator_a = User.objects.create_user(
+            username="curator_ana",
+            email="ana@wanderinsight.ph",
+            password="StrongPassword123!",
+            role=User.Role.CURATOR,
+        )
+        self.curator_b = User.objects.create_user(
+            username="curator_ben",
+            email="ben@wanderinsight.ph",
+            password="StrongPassword123!",
+            role=User.Role.CURATOR,
+        )
+        self.viewer = User.objects.create_user(
+            username="viewer_user",
+            email="viewer@wanderinsight.ph",
+            password="StrongPassword123!",
+            role=User.Role.VIEWER,
+        )
+
+        self.district = District.objects.create(
+            name="Old Downtown Cebu",
+            zone=District.Zone.METRO_CEBU,
+        )
+        self.category = HeritageCategory.objects.create(
+            code="COLONIAL_CHURCH",
+            name="Spanish Colonial Church",
+        )
+        self.site_a = HeritageSite.objects.create(
+            name="Basilica Minore del Santo Niño",
+            district=self.district,
+            category=self.category,
+            created_by=self.curator_a,
+            municipality="Cebu City",
+            established_year=1565,
+            latitude=Decimal("10.29420"),
+            longitude=Decimal("123.90210"),
+            daily_capacity=3000,
+            entry_fee=Decimal("0.00"),
+            historical_overview="Oldest Roman Catholic church in the Philippines built with coral stone.",
+        )
+        self.site_b = HeritageSite.objects.create(
+            name="Mactan Liberty Shrine",
+            district=self.district,
+            category=self.category,
+            created_by=self.curator_b,
+            municipality="Lapu-Lapu City",
+            established_year=1969,
+            latitude=Decimal("10.31110"),
+            longitude=Decimal("124.01520"),
+            daily_capacity=1200,
+            entry_fee=Decimal("0.00"),
+            historical_overview="Bayfront historical shrine commemorating the 1521 Battle of Mactan.",
+        )
+        self.today = timezone.localdate()
+
+    def test_curator_full_visitation_log_crud_and_live_dashboard_metrics(self):
+        self.client.login(username="curator_ana", password="StrongPassword123!")
+        create_resp = self.client.post(
+            reverse("heritage:site_log_create", args=[self.site_a.slug]),
+            {
+                "site": self.site_a.id,
+                "visit_date": self.today.isoformat(),
+                "local_visitors": 200,
+                "domestic_visitors": 120,
+                "foreign_visitors": 80,
+                "total_visitors": 400,
+                "weather_condition": VisitationLog.WeatherCondition.SUNNY,
+                "special_event": "Heritage Guided Tour",
+                "remarks": "Smooth visitor flow.",
+            },
+        )
+        self.assertRedirects(create_resp, reverse("heritage:site_detail", args=[self.site_a.slug]))
+        log = VisitationLog.objects.get(site=self.site_a, visit_date=self.today)
+        self.assertEqual(log.recorded_by, self.curator_a)
+        self.assertEqual(log.total_visitors, 400)
+
+        # Dashboard reflects SQL SUM()
+        dash_resp = self.client.get(reverse("accounts:curator_dashboard"))
+        self.assertEqual(dash_resp.status_code, 200)
+        self.assertEqual(dash_resp.context["analytics"]["total_visitors"], 400)
+
+        # Update log
+        upd_resp = self.client.post(
+            reverse("heritage:log_update", args=[log.pk]),
+            {
+                "site": self.site_a.id,
+                "visit_date": self.today.isoformat(),
+                "local_visitors": 250,
+                "domestic_visitors": 150,
+                "foreign_visitors": 100,
+                "total_visitors": 500,
+                "weather_condition": VisitationLog.WeatherCondition.PARTLY_CLOUDY,
+                "special_event": "Updated Tour",
+                "remarks": "Afternoon surge.",
+            },
+        )
+        self.assertRedirects(upd_resp, reverse("heritage:site_detail", args=[self.site_a.slug]))
+        log.refresh_from_db()
+        self.assertEqual(log.total_visitors, 500)
+
+        # Delete log
+        del_resp = self.client.post(reverse("heritage:log_delete", args=[log.pk]))
+        self.assertRedirects(del_resp, reverse("heritage:site_detail", args=[self.site_a.slug]))
+        self.assertFalse(VisitationLog.objects.filter(pk=log.pk).exists())
+
+    def test_br01_demographic_sum_mismatch_and_future_date_rejected(self):
+        self.client.login(username="curator_ana", password="StrongPassword123!")
+        future_day = (self.today + timedelta(days=2)).isoformat()
+        resp = self.client.post(
+            reverse("heritage:log_create"),
+            {
+                "site": self.site_a.id,
+                "visit_date": future_day,
+                "local_visitors": 100,
+                "domestic_visitors": 50,
+                "foreign_visitors": 25,
+                "total_visitors": 999,  # violates BR-01 (175 != 999)
+                "weather_condition": VisitationLog.WeatherCondition.SUNNY,
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Demographic sum mismatch (BR-01)")
+        self.assertContains(resp, "cannot be in the future")
+        self.assertEqual(VisitationLog.objects.count(), 0)
+
+    def test_br04_duplicate_site_and_date_rejected(self):
+        VisitationLog.objects.create(
+            site=self.site_a,
+            recorded_by=self.curator_a,
+            visit_date=self.today,
+            local_visitors=50,
+            domestic_visitors=30,
+            foreign_visitors=20,
+            total_visitors=100,
+        )
+        self.client.login(username="curator_ana", password="StrongPassword123!")
+        resp = self.client.post(
+            reverse("heritage:log_create"),
+            {
+                "site": self.site_a.id,
+                "visit_date": self.today.isoformat(),
+                "local_visitors": 60,
+                "domestic_visitors": 20,
+                "foreign_visitors": 20,
+                "total_visitors": 100,
+                "weather_condition": VisitationLog.WeatherCondition.SUNNY,
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "already exists (BR-04)")
+        self.assertEqual(VisitationLog.objects.count(), 1)
+
+    def test_curator_isolation_on_visitation_logs_and_admin_override(self):
+        log_a = VisitationLog.objects.create(
+            site=self.site_a,
+            recorded_by=self.curator_a,
+            visit_date=self.today,
+            local_visitors=100,
+            domestic_visitors=50,
+            foreign_visitors=30,
+            total_visitors=180,
+        )
+        self.client.login(username="curator_ben", password="StrongPassword123!")
+        # Curator Ben does not see Curator Ana's log in his log_list
+        list_resp = self.client.get(reverse("heritage:log_list"))
+        self.assertNotContains(list_resp, "Basilica Minore del Santo Niño")
+
+        # Curator Ben cannot edit or delete Curator Ana's log
+        edit_resp = self.client.post(reverse("heritage:log_update", args=[log_a.pk]))
+        self.assertRedirects(edit_resp, reverse("heritage:site_detail", args=[self.site_a.slug]))
+        del_resp = self.client.post(reverse("heritage:log_delete", args=[log_a.pk]))
+        self.assertRedirects(del_resp, reverse("heritage:site_detail", args=[self.site_a.slug]))
+        self.assertTrue(VisitationLog.objects.filter(pk=log_a.pk).exists())
+
+        # Viewer cannot open log_list or log_create
+        self.client.login(username="viewer_user", password="StrongPassword123!")
+        self.assertEqual(self.client.get(reverse("heritage:log_list")).status_code, 302)
+        self.assertEqual(self.client.get(reverse("heritage:log_create")).status_code, 302)
+
+        # Admin sees all logs across curators
+        self.client.login(username="admin_gov", password="StrongPassword123!")
+        admin_list = self.client.get(reverse("heritage:log_list"))
+        self.assertContains(admin_list, "Basilica Minore del Santo Niño")
+
+    def test_seed_heritage_data_command_is_idempotent(self):
+        call_command("seed_heritage_data")
+        call_command("seed_heritage_data")
+        self.assertGreaterEqual(HeritageSite.objects.count(), 6)
+        self.assertGreaterEqual(VisitationLog.objects.count(), 36)

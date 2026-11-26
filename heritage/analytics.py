@@ -7,10 +7,10 @@ from django.db.models.functions import Coalesce, TruncMonth
 def build_visitation_analytics(logs_qs):
     """Compute PostgreSQL SQL aggregations and Chart.js series from a VisitationLog queryset."""
     totals = logs_qs.aggregate(
-        total_visitors=Coalesce(Sum("total_visitors"), 0),
-        local_visitors=Coalesce(Sum("local_visitors"), 0),
-        domestic_visitors=Coalesce(Sum("domestic_visitors"), 0),
-        foreign_visitors=Coalesce(Sum("foreign_visitors"), 0),
+        sum_total=Coalesce(Sum("total_visitors"), 0),
+        sum_local=Coalesce(Sum("local_visitors"), 0),
+        sum_dom=Coalesce(Sum("domestic_visitors"), 0),
+        sum_for=Coalesce(Sum("foreign_visitors"), 0),
         avg_daily=Avg("total_visitors"),
         log_count=Count("id"),
     )
@@ -30,10 +30,10 @@ def build_visitation_analytics(logs_qs):
         trend_labels = [r.visit_date.strftime("%b %d") for r in recent_rows]
         trend_values = [int(r.total_visitors) for r in recent_rows]
 
-    total = int(totals["total_visitors"] or 0)
-    local_v = int(totals["local_visitors"] or 0)
-    dom_v = int(totals["domestic_visitors"] or 0)
-    for_v = int(totals["foreign_visitors"] or 0)
+    total = int(totals["sum_total"] or 0)
+    local_v = int(totals["sum_local"] or 0)
+    dom_v = int(totals["sum_dom"] or 0)
+    for_v = int(totals["sum_for"] or 0)
 
     if total > 0:
         local_pct = round((local_v / total) * 100, 1)
