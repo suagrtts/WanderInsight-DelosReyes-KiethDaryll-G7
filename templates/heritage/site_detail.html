@@ -147,9 +147,15 @@
         <span class="mono-tag text-muted">{% if analytics.has_chart_data %}Live PostgreSQL Series{% else %}Awaiting First Entry{% endif %}</span>
       </div>
       <div class="card-body">
+        {% if analytics.has_chart_data %}
         <div class="chart-box">
           <canvas id="wi-visitation-chart" data-labels='{{ analytics.trend_labels_json }}' data-values='{{ analytics.trend_values_json }}'></canvas>
         </div>
+        {% else %}
+        <div class="chart-box d-flex justify-content-center align-items-center text-center text-muted px-3">
+          <p class="mb-0">No visitation trend data recorded for this landmark yet.</p>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -159,9 +165,15 @@
         <span class="ua-icon text-primary" data-ua="pie-chart" data-ua-interaction="hover-replay" data-ua-size="20"></span>Demographic Origin Split (BR-01)
       </div>
       <div class="card-body">
+        {% if analytics.total_visitors > 0 %}
         <div class="chart-box">
           <canvas id="wi-demographic-chart" data-origin-values='{{ analytics.origin_values_json }}'></canvas>
         </div>
+        {% else %}
+        <div class="chart-box d-flex justify-content-center align-items-center text-center text-muted px-3">
+          <p class="mb-0 small">Demographic breakdown will populate after the first visitation log.</p>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -223,5 +235,6 @@
       </tbody>
     </table>
   </div>
+  {% include "partials/pagination.html" %}
 </div>
 {% endblock %}
